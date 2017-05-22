@@ -8,7 +8,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
-import com.rnfitandawareness.MainActivity;
+import com.rnfitandawareness.BaseActivity;
 
 import nl.sense_os.input_kit.InputKit;
 
@@ -39,8 +39,8 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     public void requestPermissions() {
         String message = "Request Permission clicked";
         Activity activity = getCurrentActivity();
-        if (activity != null && MainActivity.class.isInstance(activity)) {
-            ((MainActivity) activity).requestAllPermissions();
+        if (activity != null && BaseActivity.class.isInstance(activity)) {
+            ((BaseActivity) activity).requestAllPermissions();
         }
         Log.d(TAG, message);
     }
