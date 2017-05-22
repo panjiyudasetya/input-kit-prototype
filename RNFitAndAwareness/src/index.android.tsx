@@ -28,39 +28,35 @@ class RNFitAndAwareness extends Component<any, any> {
   render() {
     return (
       <View style={styles.containerStyle}>
-
-        <Text style={styles.title}>
-          Input Kit Prototype
-        </Text>
-
-        <View style={styles.boxStyle}>
-
-          <Button
-            onPress={this.requestPermissions}
-            title="Request Permissions"
-            color="#841584"
-          />
-
-          <Button
-            onPress={this.startMeasurements}
-            title="Start Measurement"
-            color="#841584"
-          />
-
-          <Button
-            onPress={this.stopMeasurements}
-            title="Sending emit events"
-            color="#841584"
-          />
-
+        <View style={styles.flexItem}>
+            <Text style={styles.title}>
+                Input Kit Playground
+            </Text>
+        </View>
+        <View style={styles.flexItem}>
+            <Button
+                onPress={this.requestPermissions}
+                title="Request Permissions"
+                color="#03A9F4"/>
+        </View>
+        <View style={styles.flexItem}>
+            <Button
+                onPress={this.startMeasurements}
+                title="Start Measurements"
+                color="#4CAF50"/>
+        </View>
+        <View style={styles.flexItem}>
+            <Button
+                onPress={this.stopMeasurements}
+                title="Stop Measurement"
+                color="#F44336"/>
         </View>
       </View>
     );
   }
 
   requestPermissions() {
-      const measurements = [Measurements.STEPS_COUNT, Measurements.GEOFENCING];
-      InputKitModule.requestPermissions(measurements);
+      InputKitModule.requestPermissions();
   }
 
   startMeasurements() {
@@ -84,10 +80,6 @@ export default RNFitAndAwareness;
 
 const styles = StyleSheet.create({
   containerStyle: {
-    borderWidth: 1,
-    borderRadius: 2,
-    borderColor: '#ddd',
-    borderBottomWidth: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -99,21 +91,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  boxStyle: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
+  flexItem: {
+    margin: 5
   },
   title: {
     fontSize: 20,
     margin: 10,
     alignSelf: 'center',
-  },
-  buttonStyle: {
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#007aff',
   }
 });
