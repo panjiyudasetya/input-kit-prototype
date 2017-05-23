@@ -11,14 +11,9 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
-import com.orhanobut.hawk.Hawk;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import nl.sense_os.input_kit.receivers.GeofenceReceiver;
-
-import static nl.sense_os.input_kit.constant.Preference.IS_SENSE_HQ_ALREADY_REGISTERED_KEY;
 import static nl.sense_os.input_kit.entities.GeofenceLocation.SENSE_ID_HQ_LOCATION;
 import static nl.sense_os.input_kit.entities.GeofenceLocation.SENSE_NL_HQ_LOCATION;
 
@@ -81,8 +76,8 @@ public class MonitoringGeofenceApiHelper {
                         )
                         // Set the transition types of interest. Alerts are only generated for these
                         // transition. We track entry and exit transitions in this sample.
-                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                                Geofence.GEOFENCE_TRANSITION_EXIT)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER
+                                | Geofence.GEOFENCE_TRANSITION_EXIT)
                         .setLoiteringDelay((int) SENSE_NL_HQ_LOCATION.getLoiteringDelay())
                         .build()
         );
@@ -97,7 +92,6 @@ public class MonitoringGeofenceApiHelper {
         ).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
-                if (status.isSuccess()) Hawk.put(IS_SENSE_HQ_ALREADY_REGISTERED_KEY, false);
             }
         }); // Result processed in onResult().
     }
@@ -109,7 +103,6 @@ public class MonitoringGeofenceApiHelper {
     @SuppressWarnings({"SpellCheckingInspection", "MissingPermission"})
     public void addSenseHQGeofences() throws SecurityException {
         if (!googleApiClient.isConnected()) return;
-        if (Hawk.get(IS_SENSE_HQ_ALREADY_REGISTERED_KEY, false)) return;
 
         LocationServices.GeofencingApi.addGeofences(
                 googleApiClient,
@@ -122,7 +115,6 @@ public class MonitoringGeofenceApiHelper {
         ).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
-                if (status.isSuccess()) Hawk.put(IS_SENSE_HQ_ALREADY_REGISTERED_KEY, true);
             }
         }); // Result processed in onResult().
     }

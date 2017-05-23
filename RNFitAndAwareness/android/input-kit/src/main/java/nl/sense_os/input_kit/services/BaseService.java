@@ -13,6 +13,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
+import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -71,6 +72,7 @@ public abstract class BaseService extends Service
     @Override
     public void onCreate() {
         super.onCreate();
+        Hawk.init(this).build();
         buildGoogleApiClient(initWithGoogleClientApis(), initWithGoogleClientScopes());
         initComponents();
     }

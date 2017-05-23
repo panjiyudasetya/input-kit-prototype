@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.orhanobut.hawk.Hawk;
+
 import nl.sense_os.input_kit.services.AwarenessService;
 import nl.sense_os.input_kit.services.GoogleFitService;
 import nl.sense_os.input_kit.constant.ServiceType;
@@ -19,6 +21,7 @@ public abstract class BaseReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         mContext = context;
+        Hawk.init(mContext).build();
         wakingUpServices();
     }
 

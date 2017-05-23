@@ -1,102 +1,34 @@
 import React, { Component } from 'react';
 import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  Alert,
-  Button
+  Platform,
+  StyleSheet
 } from 'react-native';
-import InputKitModule from './native/InputKitModule';
-import Measurements from './constants/Measurements';
-import { DeviceEventEmitter } from 'react-native';
+import { Router, Scene } from 'react-native-router-flux';
+
+import MainPage from './pages/MainPage';
+import DashboardPage from './pages/DashboardPage';
 
 class RNFitAndAwareness extends Component<any, any> {
-  componentWillMount() {
-    DeviceEventEmitter
-        .addListener(
-            'InputKitModule',
-            (data) => {
-                console.log(data.content);
-            });
-  }
-
-  componentDidMount() {
-    // this.fetchData();
-  }
-
   render() {
     return (
-      <View style={styles.containerStyle}>
-        <View style={styles.flexItem}>
-            <Text style={styles.title}>
-                Input Kit Playground
-            </Text>
-        </View>
-        <View style={styles.flexItem}>
-            <Button
-                onPress={this.requestPermissions}
-                title="Request Permissions"
-                color="#03A9F4"/>
-        </View>
-        <View style={styles.flexItem}>
-            <Button
-                onPress={this.startMeasurements}
-                title="Start Measurements"
-                color="#4CAF50"/>
-        </View>
-        <View style={styles.flexItem}>
-            <Button
-                onPress={this.stopMeasurements}
-                title="Stop Measurement"
-                color="#F44336"/>
-        </View>
-      </View>
+      <Router
+        hideNavBar={false}
+        navigationBarStyle={styles.navigation}>
+        <Scene key="root">
+          <Scene key="goToMainPage" component={MainPage} title="" initial={true} />
+          <Scene key="goToDashboardPage" component={DashboardPage} title="Input Kit Dashboard" />
+        </Scene>
+      </Router>
     );
-  }
-
-  requestPermissions() {
-      InputKitModule.requestPermissions();
-  }
-
-  startMeasurements() {
-      const measurements = [Measurements.STEPS_COUNT, Measurements.GEOFENCING];
-      InputKitModule.startMeasurements(measurements);
-  }
-
-  stopMeasurements() {
-      const measurements = [Measurements.STEPS_COUNT, Measurements.GEOFENCING];
-      InputKitModule.stopMeasurements(measurements);
-  }
-
-  async fetchData() {
-      const response = await fetch('http://calapi.inadiutorium.cz/api/v0/en/calendars/default/today');
-      const json = await response.json();
-      console.log(json);
   }
 }
 
 export default RNFitAndAwareness;
 
 const styles = StyleSheet.create({
-  containerStyle: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-    marginLeft: 5,
-    marginRight: 5,
-    marginTop: 10,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  flexItem: {
-    margin: 5
-  },
-  title: {
-    fontSize: 20,
-    margin: 10,
-    alignSelf: 'center',
+  navigation: {
+    backgroundColor: '#fff',
+    borderBottomColor: 'transparent',
+    borderBottomWidth: (Platform.OS !== 'ios' ? 54 : 64)
   }
 });
