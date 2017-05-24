@@ -18,6 +18,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import nl.sense_os.input_kit.eventbus.GAClientConnReceivedEvent;
@@ -41,8 +42,10 @@ public abstract class BaseActivity extends ReactActivity {
     };
 
     public void requestAllPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSIONS_REQ_CODE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (!isAllPermissionGranted(PERMISSIONS)) {
+                ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSIONS_REQ_CODE);
+            } else showPermissionsMessageDialog(true);
         }
     }
 
@@ -53,7 +56,7 @@ public abstract class BaseActivity extends ReactActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSIONS_REQ_CODE:
-                if (!isAllPermissionGranted(PERMISSIONS)) showPermissionsDeniedMessageDialog();
+                if (!isAllPermissionGranted(PERMISSIONS)) showPermissionsMessageDialog(false);
                 break;
             default: return;
         }
@@ -109,28 +112,33 @@ public abstract class BaseActivity extends ReactActivity {
             PackageInfo info = getPackageManager()
                     .getPackageInfo(getPackageName(), PackageManager.GET_PERMISSIONS);
 
-            List<Boolean> grantedPermissions = new ArrayList<>();
-            for (String permission : permissions) {
-                if (info.requestedPermissions != null) {
-                    for (String p : info.requestedPermissions) {
-                        if (p.equals(permission)) {
-                            grantedPermissions.add(true);
-                            break;
-                        }
+            List<String> grantedPermissions = new ArrayList<>();
+            if (info.requestedPermissions != null) {
+                for (int i = 0; i < info.requestedPermissions.length; i++) {
+                    if ((info.requestedPermissionsFlags[i] & PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0) {
+                        grantedPermissions.add(info.requestedPermissions[i]);
                     }
                 }
             }
 
-            return grantedPermissions.size() == permissions.length;
+            return grantedPermissions.containsAll(Arrays.asList(PERMISSIONS));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    protected void showPermissionsDeniedMessageDialog() {
+    public boolean isAllPermissionsGranted() {
+        boolean isGranted = isAllPermissionGranted(PERMISSIONS);
+        if (!isGranted) showPermissionsMessageDialog(false);
+        else requestAllPermissions();
+        return isGranted;
+    }
+
+    private void showPermissionsMessageDialog(boolean isAllGranted) {
+        String message = getString(isAllGranted ? R.string.all_permission_granted : R.string.permission_denied);
         new AlertDialog.Builder(this)
-                .setMessage(R.string.permission_denied)
+                .setMessage(message)
                 .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {

@@ -19,7 +19,7 @@ import static nl.sense_os.input_kit.constant.Preference.STEP_COUNT_CONTENT_KEY;
  */
 
 public class PopulateStepsCountDataTask extends AsyncTask<Void, Integer, List<Content>> {
-    private static final boolean USE_DATA_AGGREGATION = true;
+    private static final boolean USE_DATA_AGGREGATION = false;
     private static final DataCacheHelper CACHE = new DataCacheHelper();
     private final StepCountHelper mModel;
 

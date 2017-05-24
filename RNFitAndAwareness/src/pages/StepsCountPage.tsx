@@ -1,27 +1,29 @@
 import React, { Component } from 'react';
 import {
-  AppRegistry,
   StyleSheet,
   Text,
   View,
-  Alert,
-  Button
+  ListView
 } from 'react-native';
 import InputKitModule from '../native/InputKitModule';
 import Measurements from '../constants/Measurements';
 import { DeviceEventEmitter } from 'react-native';
 
 class StepsCountPage extends Component<any, any> {
-  static navigationOptions = {
-    tabBarLabel: 'Steps Count'
-  };
+  constructor(props) {
+    super(props);
+    this.notifyDataSourceChange();
+  }
 
   componentWillMount() {
     DeviceEventEmitter
         .addListener(
             'InputKitModule',
             (data) => {
-                console.log(data.content);
+                console.log('Emit new event' + data);
+                if (data.steps_count_event) {
+                    console.log('Steps count' + data.steps_count_event);
+                }
             });
   }
 
@@ -29,15 +31,20 @@ class StepsCountPage extends Component<any, any> {
     // this.fetchData();
   }
 
+  notifyDataSourceChange() {
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    this.state = {
+      dataSource: ds.cloneWithRows(['Steps count row 1', 'Steps count row 2', 'Steps count row 3']),
+    };
+  }
+
   render() {
     return (
-      <View style={styles.containerStyle}>
-        <View style={styles.flexItem}>
-            <Text style={styles.title}>
-                Steps Count Page
-            </Text>
-        </View>
-      </View>
+      <ListView
+        style={styles.containerStyle}
+        dataSource={this.state.dataSource}
+        renderRow={(data) => <View><Text>{data}</Text></View>}
+      />
     );
   }
 }
@@ -46,23 +53,9 @@ export default StepsCountPage;
 
 const styles = StyleSheet.create({
   containerStyle: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-    marginLeft: 5,
-    marginRight: 5,
-    marginTop: 10,
-    flex: 1,
-    justifyContent: 'center',
+    flex: 1
   },
   flexItem: {
     margin: 5
-  },
-  title: {
-    fontSize: 20,
-    margin: 10,
-    alignSelf: 'center',
   }
 });

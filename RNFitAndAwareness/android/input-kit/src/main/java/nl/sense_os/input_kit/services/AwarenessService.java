@@ -56,7 +56,6 @@ public class AwarenessService extends BaseService implements LocationListener {
 
     public static Intent withContext(@NonNull Context context, int type) {
         mServiceType = type;
-        mStateAwarenessTracker = Hawk.get(TRACKER_KEY, new HashMap<Integer, Boolean>());
         return new Intent(context, AwarenessService.class);
     }
 
@@ -77,7 +76,6 @@ public class AwarenessService extends BaseService implements LocationListener {
 
     @Override
     public void onDestroy() {
-        mLocationHelper.stopLocationUpdates();
         Hawk.put(KEY_ACTIVATED, false);
         super.onDestroy();
     }
@@ -102,6 +100,7 @@ public class AwarenessService extends BaseService implements LocationListener {
 
     @Override
     protected void subscribe() {
+        mStateAwarenessTracker = Hawk.get(TRACKER_KEY, new HashMap<Integer, Boolean>());
         handleSubscribeServiceType();
     }
 

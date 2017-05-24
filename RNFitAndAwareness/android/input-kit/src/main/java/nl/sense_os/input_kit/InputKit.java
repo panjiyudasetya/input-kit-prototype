@@ -117,6 +117,24 @@ public class InputKit {
         Log.d(TAG, "unsubscribeDailyStepsCount: unsubcribed");
     }
 
+    public void getStepsCountHistory() {
+        mContext.startService(
+                GoogleFitService.withContext(
+                        mContext,
+                        ServiceType.Fitness.STEPS_COUNT
+                )
+        );
+    }
+
+    public void getGeofencingHistory() {
+        mContext.startService(
+                AwarenessService.withContext(
+                        mContext,
+                        ServiceType.Awareness.GEOFENCING
+                )
+        );
+    }
+
     public void release() {
 
     }

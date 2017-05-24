@@ -13,6 +13,7 @@
     "build": "npm run clean && npm run tsc --"
   },
   "dependencies": {
+    "prop-types": "^15.5.10",
     "react": "16.0.0-alpha.6",
     "react-native": "0.44.0",
     "react-native-router-flux": "^3.39.1",
