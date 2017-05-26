@@ -24,7 +24,7 @@ public class AwarenessApiHelper {
         this.activitiesPendingIntent = createActivityIntentReceiver();
     }
 
-    public void requestUpdateActivity() {
+    public void startActivityRecognition() {
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
                 googleApiClient,
                 TimeUnit.MINUTES.toMillis(5),
@@ -32,7 +32,8 @@ public class AwarenessApiHelper {
         );
     }
 
-    public void stopRequestUpdateActivity() {
+    @SuppressWarnings("SpellCheckingInspection")
+    public void stopActivityRecognition() {
         ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(
                 googleApiClient,
                 activitiesPendingIntent

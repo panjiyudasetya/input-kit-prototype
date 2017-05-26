@@ -10,7 +10,7 @@ import java.util.List;
 import nl.sense_os.input_kit.entities.Content;
 import nl.sense_os.input_kit.entities.StepsCountResponse;
 import nl.sense_os.input_kit.helpers.DataCacheHelper;
-import nl.sense_os.input_kit.helpers.StepCountHelper;
+import nl.sense_os.input_kit.services.apis.StepsCountApiHelper;
 
 import static nl.sense_os.input_kit.constant.Preference.STEP_COUNT_CONTENT_KEY;
 
@@ -21,10 +21,10 @@ import static nl.sense_os.input_kit.constant.Preference.STEP_COUNT_CONTENT_KEY;
 public class PopulateStepsCountDataTask extends AsyncTask<Void, Integer, List<Content>> {
     private static final boolean USE_DATA_AGGREGATION = false;
     private static final DataCacheHelper CACHE = new DataCacheHelper();
-    private final StepCountHelper mModel;
+    private final StepsCountApiHelper mModel;
 
     public PopulateStepsCountDataTask(@NonNull GoogleApiClient client) {
-        this.mModel = new StepCountHelper(client);
+        this.mModel = new StepsCountApiHelper(client);
     }
 
     @Override

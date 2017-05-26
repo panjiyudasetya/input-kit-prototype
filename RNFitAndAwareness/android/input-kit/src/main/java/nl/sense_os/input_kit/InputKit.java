@@ -4,9 +4,13 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import nl.sense_os.input_kit.constant.ServiceType;
 import nl.sense_os.input_kit.services.AwarenessService;
 import nl.sense_os.input_kit.services.GoogleFitService;
+
+import static nl.sense_os.input_kit.constant.InputKitType.Activities;
+import static nl.sense_os.input_kit.constant.InputKitType.Geofencing;
+import static nl.sense_os.input_kit.constant.InputKitType.LocationUpdates;
+import static nl.sense_os.input_kit.constant.InputKitType.StepsCount;
 
 /**
  * Created by panjiyudasetya on 5/22/17.
@@ -33,7 +37,7 @@ public class InputKit {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.ACTIVITIES
+                        Activities.SUBSCRIBE
                 )
         );
         Log.d(TAG, "subscribeActivityDetection: subscribed");
@@ -44,7 +48,7 @@ public class InputKit {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.STOP_ACTIVITIES
+                        Activities.UNSUBSCRIBE
                 )
         );
         Log.d(TAG, "unsubscribeActivityDetection: unsubcribed");
@@ -55,7 +59,7 @@ public class InputKit {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.LOCATION_UPDATES
+                        LocationUpdates.SUBSCRIBE
                 )
         );
         Log.d(TAG, "subscribeLocationUpdates: subcribed");
@@ -66,7 +70,7 @@ public class InputKit {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.STOP_LOCATION_UPDATES
+                        LocationUpdates.UNSUBSCRIBE
                 )
         );
         Log.d(TAG, "unsubscribeLocationUpdates: unsubcribed");
@@ -77,7 +81,7 @@ public class InputKit {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.GEOFENCING
+                        Geofencing.SUBSCRIBE
                 )
         );
         Log.d(TAG, "subscribeGeofencing: subscribed");
@@ -88,7 +92,7 @@ public class InputKit {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.STOP_GEOFENCING
+                        Geofencing.UNSUBSCRIBE
                 )
         );
         Log.d(TAG, "unsubscribeGeofencing: unsubribed");
@@ -100,7 +104,7 @@ public class InputKit {
         mContext.startService(
                 GoogleFitService.withContext(
                         mContext,
-                        ServiceType.Fitness.STEPS_COUNT
+                        StepsCount.SUBSCRIBE
                 )
         );
         Log.d(TAG, "subscribeDailyStepsCount: subscribed");
@@ -111,7 +115,7 @@ public class InputKit {
         mContext.startService(
                 GoogleFitService.withContext(
                         mContext,
-                        ServiceType.Fitness.STOP_STEPS_COUNT
+                        StepsCount.UNSUBSCRIBE
                 )
         );
         Log.d(TAG, "unsubscribeDailyStepsCount: unsubcribed");
@@ -121,16 +125,17 @@ public class InputKit {
         mContext.startService(
                 GoogleFitService.withContext(
                         mContext,
-                        ServiceType.Fitness.STEPS_COUNT
+                        StepsCount.GET_STEPS_COUNT
                 )
         );
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     public void getGeofencingHistory() {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.GEOFENCING
+                        Geofencing.GET_GEOFENCING_HISTORY
                 )
         );
     }

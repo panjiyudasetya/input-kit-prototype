@@ -101,7 +101,7 @@ public class MonitoringGeofenceApiHelper {
      * specified geofences. Handles the success or failure results returned by addGeofences().
      */
     @SuppressWarnings({"SpellCheckingInspection", "MissingPermission"})
-    public void addSenseHQGeofences() throws SecurityException {
+    public void startSensingSenseHQGeofences() throws SecurityException {
         if (!googleApiClient.isConnected()) return;
 
         LocationServices.GeofencingApi.addGeofences(

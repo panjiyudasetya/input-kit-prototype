@@ -1,11 +1,14 @@
-package nl.sense_os.input_kit.helpers;
+package nl.sense_os.input_kit.services.apis;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessStatusCodes;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
@@ -13,6 +16,8 @@ import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -24,14 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import nl.sense_os.input_kit.constant.InputKitType;
 import nl.sense_os.input_kit.entities.Content;
 import nl.sense_os.input_kit.entities.StepsCountResponse;
+import nl.sense_os.input_kit.eventbus.GAClientConnReceivedEvent;
 
 /**
  * Created by panjiyudasetya on 5/5/17.
  */
 
-public class StepCountHelper {
+public class StepsCountApiHelper {
     private static final String TAG = "STEP_COUNT_TASK";
     private static final int START_TIME = 0;
     private static final int END_TIME = 1;
@@ -43,10 +50,30 @@ public class StepCountHelper {
     private DateFormat mDateFormat;
     private DateFormat mDateTimeFormat;
 
-    public StepCountHelper(@NonNull GoogleApiClient client) {
+    public StepsCountApiHelper(@NonNull GoogleApiClient client) {
         this.mClient = client;
         this.mDateFormat = DateFormat.getDateInstance();
         this.mDateTimeFormat = DateFormat.getDateTimeInstance();
+    }
+
+    public void subscribeStepsCountApi(ResultCallback<Status> resultCallback) {
+        // To create a subscription, invoke the Recording API. As soon as the subscription is
+        // active, fitness data will start recording.
+        Fitness.RecordingApi
+                .subscribe(mClient, DataType.TYPE_STEP_COUNT_CUMULATIVE)
+                .setResultCallback(resultCallback);
+    }
+
+    @SuppressWarnings("SpellCheckingInspection")
+    public void unsubscribeStepsCountApi() {
+        Fitness.RecordingApi
+                .unsubscribe(mClient, DataType.TYPE_STEP_COUNT_CUMULATIVE)
+                .setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        // TODO: Do we need to handle this ?
+                    }
+                });
     }
 
     /**

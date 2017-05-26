@@ -8,7 +8,7 @@ import com.orhanobut.hawk.Hawk;
 
 import nl.sense_os.input_kit.services.AwarenessService;
 import nl.sense_os.input_kit.services.GoogleFitService;
-import nl.sense_os.input_kit.constant.ServiceType;
+import nl.sense_os.input_kit.constant.InputKitType;
 import nl.sense_os.input_kit.helpers.AlarmHelper;
 
 /**
@@ -40,7 +40,7 @@ public abstract class BaseReceiver extends BroadcastReceiver {
         mContext.startService(
                 AwarenessService.withContext(
                         mContext,
-                        ServiceType.Awareness.ALL
+                        InputKitType.START_ALL
                 )
         );
     }
@@ -49,7 +49,7 @@ public abstract class BaseReceiver extends BroadcastReceiver {
         mContext.startService(
                 GoogleFitService.withContext(
                         mContext,
-                        ServiceType.Awareness.ALL
+                        InputKitType.START_ALL
                 )
         );
     }
