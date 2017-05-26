@@ -19,11 +19,11 @@ public class GoogleFitService extends BaseService {
     private static final String TAG = "FIT_SERVICE";
     private static final Api[] REQUIRED_APIS = {Fitness.RECORDING_API, Fitness.HISTORY_API, Awareness.API};
     private static final Scope[] REQUIRED_SCOPES = {new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE)};
-    private static int mServiceType;
+    private static int mActionType;
     private GoogleFitServiceController mServiceController;
 
     public static Intent withContext(@NonNull Context context, int type) {
-        mServiceType = type;
+        mActionType = type;
         return new Intent(context, GoogleFitService.class);
     }
 
@@ -65,6 +65,6 @@ public class GoogleFitService extends BaseService {
 
     @Override
     protected void subscribe() {
-        mServiceController.handleSubscribeEvent(mServiceType);
+        mServiceController.handleSubscribeEvent(mActionType);
     }
 }

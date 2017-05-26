@@ -41,8 +41,20 @@ public class GoogleFitServiceController {
 
     public void handleSubscribeEvent(int actionType) {
         mActionType = actionType;
-        if (!mIsStepsCountApiSubscribed) subscribeStepsCountApi();
-        else handleSubscribeServiceType(mActionType);
+        if (isSubscribeActions()) {
+            startFitApi();
+            return;
+        }
+
+        if (isUnsubscribeActions()) {
+            stopFitApi();
+            return;
+        }
+
+        if (mActionType == StepsCount.GET_STEPS_COUNT) {
+            consumeStepsCountHistory();
+            return;
+        }
     }
 
     public static boolean isServiceActive() {
@@ -57,53 +69,39 @@ public class GoogleFitServiceController {
      * Record step data by requesting a subscription to background step data.
      */
     private void subscribeStepsCountApi() {
-        mStepsCountHelper.subscribeStepsCountApi(new ResultCallback<Status>() {
-            @Override
-            public void onResult(@NonNull Status status) {
-                if (status.isSuccess()) {
-                    mIsStepsCountApiSubscribed = true;
-                    if (status.getStatusCode()
-                            == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
-                        EventBus.getDefault()
-                                .post(new GAClientConnReceivedEvent(
-                                        GAClientConnReceivedEvent.Status.ALREADY_SUBSCRIBED,
-                                        "Existing subscription for activity detected."
-                                ));
+        if (!mIsStepsCountApiSubscribed) {
+            mStepsCountHelper.subscribeStepsCountApi(new ResultCallback<Status>() {
+                @Override
+                public void onResult(@NonNull Status status) {
+                    if (status.isSuccess()) {
+                        mIsStepsCountApiSubscribed = true;
+                        if (status.getStatusCode()
+                                == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
+                            EventBus.getDefault()
+                                    .post(new GAClientConnReceivedEvent(
+                                            GAClientConnReceivedEvent.Status.ALREADY_SUBSCRIBED,
+                                            "Existing subscription for activity detected."
+                                    ));
+                        } else {
+                            EventBus.getDefault()
+                                    .post(new GAClientConnReceivedEvent(
+                                            GAClientConnReceivedEvent.Status.SUCCESSFULLY_SUBSCRIBED,
+                                            "Successfully subscribed!"
+                                    ));
+                        }
+
+                        consumeStepsCountHistory();
                     } else {
+                        mIsStepsCountApiSubscribed = false;
                         EventBus.getDefault()
                                 .post(new GAClientConnReceivedEvent(
-                                        GAClientConnReceivedEvent.Status.SUCCESSFULLY_SUBSCRIBED,
-                                        "Successfully subscribed!"
+                                        GAClientConnReceivedEvent.Status.FAILURE_TO_SUBSCRIBE,
+                                        "There was a problem subscribing."
                                 ));
                     }
-
-                    handleSubscribeServiceType(StepsCount.GET_STEPS_COUNT);
-                } else {
-                    EventBus.getDefault()
-                            .post(new GAClientConnReceivedEvent(
-                                    GAClientConnReceivedEvent.Status.FAILURE_TO_SUBSCRIBE,
-                                    "There was a problem subscribing."
-                            ));
                 }
-            }
-        });
-    }
-
-    private void handleSubscribeServiceType(int type) {
-        if (isSubscribeActions()) {
-            startFitApi();
-            return;
-        }
-
-        if (isUnsubscribeActions()) {
-            stopFitApi();
-            return;
-        }
-
-        if (type == StepsCount.GET_STEPS_COUNT) {
-            consumeStepsCountHistory();
-            return;
-        }
+            });
+        } else consumeStepsCountHistory();
     }
 
     private boolean isSubscribeActions() {

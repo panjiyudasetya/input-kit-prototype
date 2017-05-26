@@ -10,18 +10,26 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import nl.sense_os.input_kit.entities.Content;
 
 /**
  * Created by panjiyudasetya on 5/22/17.
  */
 
-public class ReactJson {
+public class JsonHelper {
+    private static final Gson GSON = new Gson();
+
     @NonNull
     public static WritableMap convertJsonToMap(@Nullable JSONObject jsonObject) throws JSONException {
         WritableMap map = new WritableNativeMap();
@@ -135,5 +143,11 @@ public class ReactJson {
             }
         }
         return array;
+    }
+
+    public static String toJson(@NonNull String key, @NonNull List<Content> contents) {
+        Map<String, List<Content>> map = new HashMap<>(1);
+        map.put(key, contents);
+        return GSON.toJson(map);
     }
 }

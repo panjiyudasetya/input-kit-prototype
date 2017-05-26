@@ -2,6 +2,7 @@ package nl.sense_os.input_kit.eventbus;
 
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import nl.sense_os.input_kit.entities.Content;
@@ -18,6 +19,6 @@ public class DetectedStepsCountEvent {
     }
 
     public List<Content> getContents() {
-        return contents;
+        return contents == null ? new ArrayList<Content>() : contents;
     }
 }

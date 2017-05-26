@@ -9,9 +9,11 @@ import {
 // tslint:disable-next-line:variable-name
 const Row = (props) => (
   <View style={styles.container}>
-    <Image source={{ uri: props.picture.large}} style={styles.photo} />
-    <Text style={styles.text}>
-      {`${props.name.first} ${props.name.last}`}
+    <Text style={styles.textContent}>
+      {`${props.content}`}
+    </Text>
+    <Text style={styles.textTimeStamp}>
+      {`${new Date(props.time_stamp).toUTCString()}`}
     </Text>
   </View>
 );
@@ -22,16 +24,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
   },
-  text: {
-    marginLeft: 12,
-    fontSize: 16,
+  textContent: {
+    margin: 5,
+    fontSize: 14,
   },
-  photo: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-  },
+  textTimeStamp: {
+    marginLeft: 5,
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: 'bold',
+  }
 });

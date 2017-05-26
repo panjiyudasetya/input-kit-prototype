@@ -3,6 +3,7 @@ package nl.sense_os.input_kit.eventbus;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import nl.sense_os.input_kit.entities.Content;
@@ -31,7 +32,7 @@ public class LocationChangeEvent {
     }
 
     public List<Content> getContents() {
-        return contents;
+        return contents == null ? new ArrayList<Content>() : contents;
     }
 
     public boolean isSuccessfull() {

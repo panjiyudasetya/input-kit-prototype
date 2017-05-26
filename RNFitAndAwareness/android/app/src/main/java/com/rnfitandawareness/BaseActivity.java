@@ -43,7 +43,7 @@ public abstract class BaseActivity extends ReactActivity {
 
     public void requestAllPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (!isAllPermissionGranted(PERMISSIONS)) {
+            if (!isAllPermissionsGranted(PERMISSIONS)) {
                 ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSIONS_REQ_CODE);
             } else showPermissionsMessageDialog(true);
         }
@@ -56,7 +56,7 @@ public abstract class BaseActivity extends ReactActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSIONS_REQ_CODE:
-                if (!isAllPermissionGranted(PERMISSIONS)) showPermissionsMessageDialog(false);
+                if (!isAllPermissionsGranted(PERMISSIONS)) showPermissionsMessageDialog(false);
                 break;
             default: return;
         }
@@ -87,8 +87,6 @@ public abstract class BaseActivity extends ReactActivity {
         } else if (status.equals(GAClientConnReceivedEvent.Status.SIGN_IN_REQUIRED)) {
             ConnectionResult connectionResult = event.getConnResult();
             if (connectionResult != null) resolvePlayServiceCredentialProblem(connectionResult);
-        } else {
-            Log.w(TAG, message);
         }
     }
 
@@ -105,7 +103,7 @@ public abstract class BaseActivity extends ReactActivity {
      *
      * @return True if permissions granted, False otherwise.
      */
-    protected boolean isAllPermissionGranted(String[] permissions) {
+    protected boolean isAllPermissionsGranted(String[] permissions) {
         if (permissions == null || permissions.length == 0) return true;
 
         try {
@@ -128,11 +126,17 @@ public abstract class BaseActivity extends ReactActivity {
         }
     }
 
-    public boolean isAllPermissionsGranted() {
-        boolean isGranted = isAllPermissionGranted(PERMISSIONS);
-        if (!isGranted) showPermissionsMessageDialog(false);
-        else requestAllPermissions();
-        return isGranted;
+    public boolean checkAndCallRequiredPermissions() {
+        boolean isAllGranted = isAllPermissionsGranted(PERMISSIONS);
+        if (!isAllGranted) requestAllPermissions();
+        else showPermissionsMessageDialog(true);
+        return isAllGranted;
+    }
+
+    public boolean checkAndShowPermissionsDialog() {
+        boolean isAllGranted = isAllPermissionsGranted(PERMISSIONS);
+        if (!isAllGranted) showPermissionsMessageDialog(false);
+        return isAllGranted;
     }
 
     private void showPermissionsMessageDialog(boolean isAllGranted) {
@@ -147,6 +151,5 @@ public abstract class BaseActivity extends ReactActivity {
                 })
                 .create()
                 .show();
-
     }
 }

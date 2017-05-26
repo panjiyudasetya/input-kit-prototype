@@ -7,34 +7,38 @@ import {
 } from 'react-native';
 import InputKitModule from '../native/InputKitModule';
 import Measurements from '../constants/Measurements';
+import Row from '../components/itemrows/ContentItemRow';
 import { DeviceEventEmitter } from 'react-native';
 
 class StepsCountPage extends Component<any, any> {
   constructor(props) {
     super(props);
-    this.notifyDataSourceChange();
+    this.notifyDataSourceChange([]);
   }
 
   componentWillMount() {
     DeviceEventEmitter
         .addListener(
-            'InputKitModule',
-            (data) => {
-                console.log('Emit new event' + data);
-                if (data.steps_count_event) {
-                    console.log('Steps count' + data.steps_count_event);
+            'StepsCountEmitEvent',
+            (data: string) => {
+                console.log('JSStepsCount > Emit new event' + data);
+                const STEPS_COUNT = JSON.parse(data);
+                if (STEPS_COUNT.steps_count_event) {
+                    this.notifyDataSourceChange(STEPS_COUNT.steps_count_event);
+                    this.forceUpdate();
+                    console.log('JSStepsCount > Steps count > ' + STEPS_COUNT.steps_count_event);
                 }
             });
   }
 
   componentDidMount() {
-    // this.fetchData();
+    this.fetchData();
   }
 
-  notifyDataSourceChange() {
+  notifyDataSourceChange(contents: object[]) {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
-      dataSource: ds.cloneWithRows(['Steps count row 1', 'Steps count row 2', 'Steps count row 3']),
+      dataSource: ds.cloneWithRows(contents),
     };
   }
 
@@ -43,9 +47,14 @@ class StepsCountPage extends Component<any, any> {
       <ListView
         style={styles.containerStyle}
         dataSource={this.state.dataSource}
-        renderRow={(data) => <View><Text>{data}</Text></View>}
+        renderRow={(data) => <Row {...data}
+        enableEmptySections={true} />}
       />
     );
+  }
+
+  fetchData() {
+      InputKitModule.getStepsCountHistory();
   }
 }
 

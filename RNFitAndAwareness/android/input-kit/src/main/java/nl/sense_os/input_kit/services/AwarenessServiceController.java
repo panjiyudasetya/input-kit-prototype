@@ -76,7 +76,7 @@ public class AwarenessServiceController {
         }
 
         if (mActionType == Geofencing.GET_GEOFENCING_HISTORY) {
-            consumeLocationsData(true);
+            consumeGeofencingData();
             return;
         }
     }

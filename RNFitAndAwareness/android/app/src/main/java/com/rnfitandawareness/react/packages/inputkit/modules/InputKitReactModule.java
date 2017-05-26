@@ -6,24 +6,18 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableType;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.google.gson.Gson;
 import com.rnfitandawareness.BaseActivity;
-import com.rnfitandawareness.helpers.ReactJson;
+import com.rnfitandawareness.helpers.JsonHelper;
 import com.rnfitandawareness.react.packages.inputkit.constants.Measurement;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import nl.sense_os.input_kit.InputKit;
 import nl.sense_os.input_kit.eventbus.DetectedStepsCountEvent;
@@ -35,8 +29,10 @@ import nl.sense_os.input_kit.eventbus.GeofenceEvent;
 
 public class InputKitReactModule extends ReactContextBaseJavaModule {
     private static final String INPUT_KIT_MODULE_NAME = "InputKitModule";
+    private static final String STEPS_COUNT_EMIT_EVENT = "StepsCountEmitEvent";
+    @SuppressWarnings("SpellCheckingInspection")
+    private static final String GEOFENCING_EMIT_EVENT = "GeofencingEmitEvent";
     private static final String TAG = INPUT_KIT_MODULE_NAME;
-    private static final Gson GSON = new Gson();
     private ReactApplicationContext mReactContext;
     private InputKit mInputKit;
 
@@ -66,7 +62,7 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     @SuppressWarnings("unused") // This is a public API, used by React App
     public void requestPermissions() {
         String message = "Request Permission clicked";
-        checkAndCallGrantedPermissions();
+        checkAndCallRequiredPermissions(false);
         Log.d(TAG, message);
     }
 
@@ -76,7 +72,7 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
         String message = "Start Measurements " + measurements;
         Log.d(TAG, message);
 
-        if (checkAndCallGrantedPermissions()) {
+        if (checkAndCallRequiredPermissions(true)) {
             checkMeasurementsArguments(measurements);
             startMonitoring(measurements);
         }
@@ -90,7 +86,7 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
         String message = "Stop Measurements " + measurements;
         Log.d(TAG, message);
 
-        if (checkAndCallGrantedPermissions()) {
+        if (checkAndCallRequiredPermissions(true)) {
             checkMeasurementsArguments(measurements);
             stopMonitoring(measurements);
         }
@@ -99,11 +95,13 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    @SuppressWarnings("unused") // This is a public API, used by React App
     public void getStepsCountHistory() {
         mInputKit.getStepsCountHistory();
     }
 
     @ReactMethod
+    @SuppressWarnings({"unused", "SpellCheckingInspection"}) // This is a public API, used by React App
     public void getGeofencingHistory() {
         mInputKit.getGeofencingHistory();
     }
@@ -113,31 +111,22 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     public void onDetectedStepsCountEvent(final @Nullable DetectedStepsCountEvent event) {
         Log.d(TAG, "onDetectedStepsCountEvent: " + event.toString());
         new AsyncTask<Void, Integer, Exception>() {
-            private WritableArray contents;
+            private String contentsJson;
             @Override
             protected Exception doInBackground(Void... voids) {
-                try {
-                    String jsonify = GSON.toJson(event.getContents());
-                    contents = ReactJson.convertJsonToArray(new JSONArray(jsonify));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    return e;
-                }
+                contentsJson = JsonHelper.toJson("steps_count_event", event.getContents());
                 return null;
             }
 
             @Override
             protected void onPostExecute(Exception e) {
                 super.onPostExecute(e);
-                Log.d(TAG, "onPostExecute: StepsCountEvent Triggered - " + contents);
-                if (contents == null || e != null || mReactContext == null) return;
-
-                WritableMap map = Arguments.createMap();
-                map.putArray("steps_count_event", contents);
+                Log.d(TAG, "onPostExecute: StepsCountEvent Triggered - " + contentsJson);
+                if (contentsJson == null || e != null || mReactContext == null) return;
 
                 mReactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                        .emit(INPUT_KIT_MODULE_NAME, map);
+                        .emit(STEPS_COUNT_EMIT_EVENT, contentsJson);
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -147,31 +136,22 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     public void onGeofenceEvent(final @Nullable GeofenceEvent event) {
         Log.d(TAG, "onGeofenceEvent: " + event.toString());
         new AsyncTask<Void, Integer, Exception>() {
-            private WritableArray contents;
+            private String contentsJson;
             @Override
             protected Exception doInBackground(Void... voids) {
-                try {
-                    String jsonify = GSON.toJson(event.getContents());
-                    contents = ReactJson.convertJsonToArray(new JSONArray(jsonify));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    return e;
-                }
+                contentsJson = JsonHelper.toJson("geofence_event", event.getContents());
                 return null;
             }
 
             @Override
             protected void onPostExecute(Exception e) {
                 super.onPostExecute(e);
-                Log.d(TAG, "onPostExecute: GeofenceEvent Triggered - " + contents);
-                if (contents == null || e != null || mReactContext == null) return;
-
-                WritableMap map = Arguments.createMap();
-                map.putArray("geofence_event", contents);
+                Log.d(TAG, "onPostExecute: GeofenceEvent Triggered - " + contentsJson);
+                if (contentsJson == null || e != null || mReactContext == null) return;
 
                 mReactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                        .emit(INPUT_KIT_MODULE_NAME, map);
+                        .emit(GEOFENCING_EMIT_EVENT, contentsJson);
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -186,10 +166,11 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private boolean checkAndCallGrantedPermissions() {
+    private boolean checkAndCallRequiredPermissions(boolean isOnlyCheck) {
         Activity activity = getCurrentActivity();
         if (activity != null && BaseActivity.class.isInstance(activity)) {
-            return ((BaseActivity) activity).isAllPermissionsGranted();
+            if (!isOnlyCheck) return ((BaseActivity) activity).checkAndCallRequiredPermissions();
+            else return ((BaseActivity) activity).checkAndShowPermissionsDialog();
         }
         return false;
     }
