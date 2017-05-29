@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">RNFitAndAwareness</string>
+
+    <string name="ok">OK</string>
+    <string name="permission_denied">We do not have all the required permissions. Please enable them in Settings > Apps > RNFitAndAwareness > Permissions.</string>
+    <string name="all_permission_granted">All permissions has been granted.</string>
 </resources>
