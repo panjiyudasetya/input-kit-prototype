@@ -7,23 +7,26 @@ import {
 } from 'react-native';
 import InputKitModule from '../native/InputKitModule';
 import Measurements from '../constants/Measurements';
+import EmitterEventListener from '../constants/EmitterEventListener';
 import Row from '../components/itemrows/ContentItemRow';
 import { DeviceEventEmitter } from 'react-native';
+let IS_COMPONENT_MOUNTED: boolean = false;
 
 class GeofencingPage extends Component<any, any> {
   constructor(props) {
     super(props);
+    props.isMounted = false;
     this.notifyDataSourceChange([]);
   }
 
   componentWillMount() {
     DeviceEventEmitter
         .addListener(
-            'GeofencingEmitEvent',
+            EmitterEventListener.GEOFENCING_EVENT_LISTENER,
             (data: string) => {
                 console.log('JSGeofence > Emit new event' + data);
                 const GEOFENCE = JSON.parse(data);
-                if (GEOFENCE.geofence_event) {
+                if (GEOFENCE.geofence_event && IS_COMPONENT_MOUNTED === true) {
                     this.notifyDataSourceChange(GEOFENCE.geofence_event);
                     this.forceUpdate();
                     console.log('JSGeofence > Geofence > ' + GEOFENCE.geofence_event);
@@ -31,7 +34,18 @@ class GeofencingPage extends Component<any, any> {
             });
   }
 
+  componentWillUnmount() {
+      IS_COMPONENT_MOUNTED = false;
+      DeviceEventEmitter.removeListener(
+          EmitterEventListener.GEOFENCING_EVENT_LISTENER,
+          () => {
+            console.log(EmitterEventListener.GEOFENCING_EVENT_LISTENER + ' removed.');
+          }
+      );
+  }
+
   componentDidMount() {
+    IS_COMPONENT_MOUNTED = true;
     this.fetchData();
   }
 
