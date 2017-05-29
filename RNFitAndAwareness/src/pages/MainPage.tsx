@@ -21,13 +21,14 @@ class MainPage extends Component<any, any> {
      // Do something on did mount
   }
 
+
   render() {
     return (
       <View style={styles.containerStyle}>
         <View style={styles.flexItem}>
-          <Text style={styles.title}>
-            Input Kit Playground
-          </Text>
+            <Text style={styles.title}>
+                Input Kit Playground
+            </Text>
         </View>
         <View style={styles.flexItem}>
             <Button
@@ -76,11 +77,6 @@ export default MainPage;
 
 const styles = StyleSheet.create({
   containerStyle: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
     paddingLeft: 5,
     paddingRight: 5,
     paddingTop: 10,
@@ -94,5 +90,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     margin: 10,
     alignSelf: 'center',
-  }
+  },
+  dialogContentView: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

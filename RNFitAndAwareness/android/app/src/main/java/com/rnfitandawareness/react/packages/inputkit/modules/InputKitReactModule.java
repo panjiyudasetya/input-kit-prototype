@@ -22,6 +22,7 @@ import org.greenrobot.eventbus.Subscribe;
 import nl.sense_os.input_kit.InputKit;
 import nl.sense_os.input_kit.eventbus.DetectedStepsCountEvent;
 import nl.sense_os.input_kit.eventbus.GeofenceEvent;
+import static com.rnfitandawareness.helpers.StringConcat.concat;
 
 /**
  * Created by panjiyudasetya on 5/19/17.
@@ -69,13 +70,14 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     @ReactMethod
     @SuppressWarnings("unused") // This is a public API, used by React App
     public void startMeasurements(ReadableArray measurements) {
-        String message = "Start Measurements " + measurements;
-        Log.d(TAG, message);
-
+        String startedInputKit = "";
         if (checkAndCallRequiredPermissions(true)) {
             checkMeasurementsArguments(measurements);
-            startMonitoring(measurements);
+            startedInputKit = startMonitoring(measurements);
         }
+
+        String message = "Start Measurements " + startedInputKit;
+        Log.d(TAG, message);
 
         Toast.makeText(mReactContext, message, Toast.LENGTH_SHORT).show();
     }
@@ -83,13 +85,14 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
     @ReactMethod
     @SuppressWarnings("unused") // This is a public API, used by React App
     public void stopMeasurements(ReadableArray measurements) {
-        String message = "Stop Measurements " + measurements;
-        Log.d(TAG, message);
-
+        String stoppedInputKit = "";
         if (checkAndCallRequiredPermissions(true)) {
             checkMeasurementsArguments(measurements);
-            stopMonitoring(measurements);
+            stoppedInputKit = stopMonitoring(measurements);
         }
+
+        String message = "Stop Measurements " + stoppedInputKit;
+        Log.d(TAG, message);
 
         Toast.makeText(mReactContext, message, Toast.LENGTH_SHORT).show();
     }
@@ -175,33 +178,45 @@ public class InputKitReactModule extends ReactContextBaseJavaModule {
         return false;
     }
 
-    private void startMonitoring(ReadableArray measurements) {
+    private String startMonitoring(ReadableArray measurements) {
+        String strMeasurements = "";
         for (int i = 0; i < measurements.size(); i++) {
             int measurementType = measurements.getInt(i);
+            String strTarget = "";
             switch (measurementType) {
                 case Measurement.STEPS_COUNT:
+                    strTarget = "Steps Count";
                     mInputKit.subscribeDailyStepsCount();
                     break;
                 case Measurement.GEOFENCING:
+                    strTarget = "Geofencing";
                     mInputKit.subscribeGeofencing();
                     break;
                 default: break;
             }
+            strMeasurements = concat(strMeasurements, strTarget);
         }
+        return strMeasurements;
     }
 
-    private void stopMonitoring(ReadableArray measurements) {
+    private String stopMonitoring(ReadableArray measurements) {
+        String strMeasurements = "";
         for (int i = 0; i < measurements.size(); i++) {
             int measurementType = measurements.getInt(i);
+            String strTarget = "";
             switch (measurementType) {
                 case Measurement.STEPS_COUNT:
+                    strTarget = "Steps Count";
                     mInputKit.unsubscribeDailyStepsCount();
                     break;
                 case Measurement.GEOFENCING:
+                    strTarget = "Geofencing";
                     mInputKit.unsubscribeGeofencing();
                     break;
                 default: break;
             }
+            strMeasurements = concat(strMeasurements, strTarget);
         }
+        return strMeasurements;
     }
 }
