@@ -23,8 +23,7 @@
             android:value="AIzaSyABlSprh8DHgeGJY4WlqOFHyC8PHPYG8T4" />
 
         <!-- Services -->
-        <service android:name=".services.AwarenessService" />
-        <service android:name=".services.GoogleFitService" />
+        <service android:name=".services.InputKitService" />
         <!-- Receivers -->
         <receiver android:name=".receivers.AlarmReceiver" />
         <receiver android:name=".receivers.GeofenceReceiver" />

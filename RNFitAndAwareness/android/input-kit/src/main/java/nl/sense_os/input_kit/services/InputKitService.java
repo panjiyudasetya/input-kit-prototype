@@ -1,71 +1,54 @@
 package nl.sense_os.input_kit.services;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.LocationServices;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
 
-import nl.sense_os.input_kit.eventbus.GAClientConnReceivedEvent;
-
-import static nl.sense_os.input_kit.eventbus.GAClientConnReceivedEvent.Status;
+import nl.sense_os.input_kit.constant.ConnectionStatus;
+import nl.sense_os.input_kit.eventbus.InputKitConnStatus;
+import nl.sense_os.input_kit.helpers.AlarmHelper;
+import nl.sense_os.input_kit.services.apis.InputKitApisHelper;
 
 /**
- * Created by panjiyudasetya on 5/15/17.
+ * Created by panjiyudasetya on 5/30/17.
  */
 
-public abstract class BaseService extends Service
+public class InputKitService extends Service
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-    /**
-     * Tag must be unique because it will be used as an ID to track down lifecycle of child service.
-     * @return Tag string.
-     */
-    protected abstract String tag();
 
-    /**
-     * This action required to add collection of {@link Api}s into Google Api Client.
-     */
-    protected abstract Api[] initWithGoogleClientApis();
-
-    /**
-     * This action required to add collection of {@link Scope}s into Google Api Client.
-     */
-    protected abstract Scope[] initWithGoogleClientScopes();
-
-    /**
-     * This action required to initialise some component which required on {@see #subscribe} event.
-     */
-    protected abstract void initComponents();
-
-    /**
-     * This action will be triggered whenever {@see #onConnected(Bundle)} event being called.
-     * Other than that, whenever {@see #onStartCommand(Intent, int, int)} function being called,
-     * this action also will be triggered if only {@see #mIsConnected} already true.
-     */
-    protected abstract void subscribe();
-
-    private GoogleApiClient mClient;
+    private static final String TAG = "INPUT_KIT_API_CLIENT";
+    private static final Api[] REQUIRED_APIS = {Awareness.API, ActivityRecognition.API, LocationServices.API,
+            Fitness.RECORDING_API, Fitness.HISTORY_API};
+    private static final Scope[] REQUIRED_SCOPES = {new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE)};
     private boolean mIsConnected;
+    private GoogleApiClient mClient;
 
-    public GoogleApiClient getApiClient() {
-        return mClient;
+    public static Intent withContext(@NonNull Context context) {
+        return new Intent(context, InputKitService.class);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!mIsConnected) mClient.connect();
-        else subscribe();
+        if (!isPlayServiceConnected()) mClient.connect();
+        else handlePlayServiceConnection(ConnectionStatus.CONNECTED, "Connected!", null);
         return START_STICKY;
     }
 
@@ -73,8 +56,7 @@ public abstract class BaseService extends Service
     public void onCreate() {
         super.onCreate();
         Hawk.init(this).build();
-        buildGoogleApiClient(initWithGoogleClientApis(), initWithGoogleClientScopes());
-        initComponents();
+        buildGoogleApiClient();
     }
 
     @Override
@@ -82,6 +64,8 @@ public abstract class BaseService extends Service
         super.onDestroy();
         setPlayServiceConnection(false);
         releaseGoogleApiClient();
+
+        new AlarmHelper(this).setNextSelfSchedulingAlarm();
     }
 
     @Nullable
@@ -93,56 +77,42 @@ public abstract class BaseService extends Service
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         setPlayServiceConnection(true);
-        Log.i(tag(), "Connected!");
-        EventBus.getDefault()
-                .post(new GAClientConnReceivedEvent(
-                        Status.CONNECTED,
-                        "Connected!")
-                );
-        subscribe();
+        String message = "Connected!";
+        Log.i(TAG, "Connected!");
+        handlePlayServiceConnection(ConnectionStatus.CONNECTED, message, null);
     }
 
     @Override
     public void onConnectionSuspended(int clientCode) {
         setPlayServiceConnection(false);
-        String message = null;
+        String message = "Connection lost. Cause : Unknown.";
         // If your connection to the sensor gets lost at some point,
         // you'll be able to determine the reason and react to it here.
         if (clientCode == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
             message = "Connection lost.  Cause: Network Lost.";
-            Log.w(tag(), message);
+            Log.w(TAG, message);
         } else if (clientCode == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-            message = "Connection lost.  Reason: Service Disconnected";
-            Log.w(tag(), message);
+            message = "Connection lost.  Reason: Service Disconnected.";
+            Log.w(TAG, message);
         }
 
-        if (!TextUtils.isEmpty(message)) {
-            EventBus.getDefault()
-                    .post(new GAClientConnReceivedEvent(
-                            GAClientConnReceivedEvent.Status.CONN_SUSPENDED,
-                            message)
-                    );
-        }
+        handlePlayServiceConnection(ConnectionStatus.CONN_SUSPENDED, message, null);
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         setPlayServiceConnection(false);
-        Log.w(tag(), "Google Play services connection failed. Cause: "
-                + connectionResult.toString());
 
-        Status status = Status.CONN_FAILED;
+        String message = "Exception while connecting to Google Play services: "
+                + connectionResult.getErrorMessage();
+
+        Log.w(TAG, message);
+
+        ConnectionStatus status = ConnectionStatus.CONN_FAILED;
         if (connectionResult.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED)
-            status = Status.SIGN_IN_REQUIRED;
+            status = ConnectionStatus.SIGN_IN_REQUIRED;
 
-        EventBus.getDefault()
-                .post(new GAClientConnReceivedEvent(
-                        status,
-                        "Exception while connecting to Google Play services: "
-                                + connectionResult.getErrorMessage(),
-
-                        connectionResult)
-                );
+        handlePlayServiceConnection(status, message, connectionResult);
     }
 
     /**
@@ -152,14 +122,11 @@ public abstract class BaseService extends Service
      * Use the {@link GoogleApiClient.OnConnectionFailedListener}
      * to resolve authentication failures (for example, the user has not signed in
      * before, or has multiple accounts and must specify which account to use).
-     *
-     * @param apis      Array of Api Client {@link Api}
-     * @param scopes    Array of {@link Scope} Api Client
      */
-    private void buildGoogleApiClient(@NonNull Api[] apis, @Nullable Scope[] scopes) {
+    private void buildGoogleApiClient() {
         // Create the Google API Client
         if (mClient == null) {
-            mClient = buildGoogleApiClientWithApisAndScopes(apis, scopes);
+            mClient = buildGoogleApiClientWithApisAndScopes(REQUIRED_APIS, REQUIRED_SCOPES);
             mClient.connect();
         }
     }
@@ -194,7 +161,23 @@ public abstract class BaseService extends Service
         return builder.build();
     }
 
+    private void handlePlayServiceConnection(@NonNull ConnectionStatus status,
+                                             @NonNull String message,
+                                             @Nullable ConnectionResult connectionResult) {
+        EventBus.getDefault()
+                .post(new InputKitConnStatus(
+                        status,
+                        message,
+                        connectionResult,
+                        new InputKitApisHelper(this, mClient))
+                );
+    }
+
     private void setPlayServiceConnection(boolean isConnected) {
         mIsConnected = isConnected;
+    }
+
+    private boolean isPlayServiceConnected() {
+        return mIsConnected;
     }
 }

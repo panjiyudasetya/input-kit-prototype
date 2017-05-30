@@ -4,12 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.orhanobut.hawk.Hawk;
-
-import nl.sense_os.input_kit.services.AwarenessService;
-import nl.sense_os.input_kit.services.GoogleFitService;
-import nl.sense_os.input_kit.constant.InputKitType;
 import nl.sense_os.input_kit.helpers.AlarmHelper;
+import nl.sense_os.input_kit.services.InputKitService;
 
 /**
  * Created by panjiyudasetya on 5/15/17.
@@ -21,7 +17,6 @@ public abstract class BaseReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         mContext = context;
-        Hawk.init(mContext).build();
         wakingUpServices();
     }
 
@@ -32,25 +27,6 @@ public abstract class BaseReceiver extends BroadcastReceiver {
     }
 
     protected void wakingUpServices() {
-        if (!AwarenessService.isActive()) wakingUpAwarenessService();
-        if (!GoogleFitService.isActive()) wakingUpFitnessService();
-    }
-
-    private void wakingUpAwarenessService() {
-        mContext.startService(
-                AwarenessService.withContext(
-                        mContext,
-                        InputKitType.START_ALL
-                )
-        );
-    }
-
-    private void wakingUpFitnessService() {
-        mContext.startService(
-                GoogleFitService.withContext(
-                        mContext,
-                        InputKitType.START_ALL
-                )
-        );
+        mContext.startService(InputKitService.withContext(mContext));
     }
 }

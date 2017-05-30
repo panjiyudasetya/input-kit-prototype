@@ -8,7 +8,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.FitnessStatusCodes;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
@@ -16,8 +15,6 @@ import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -29,10 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import nl.sense_os.input_kit.constant.InputKitType;
 import nl.sense_os.input_kit.entities.Content;
 import nl.sense_os.input_kit.entities.StepsCountResponse;
-import nl.sense_os.input_kit.eventbus.GAClientConnReceivedEvent;
 
 /**
  * Created by panjiyudasetya on 5/5/17.
@@ -65,15 +60,33 @@ public class StepsCountApiHelper {
     }
 
     @SuppressWarnings("SpellCheckingInspection")
-    public void unsubscribeStepsCountApi() {
+    public void unsubscribeStepsCountApi(ResultCallback<Status> resultCallback) {
         Fitness.RecordingApi
                 .unsubscribe(mClient, DataType.TYPE_STEP_COUNT_CUMULATIVE)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
-                        // TODO: Do we need to handle this ?
-                    }
-                });
+                .setResultCallback(resultCallback);
+    }
+    /**
+     * Get daily steps count history.
+     * This function should be called within asynchronous process because of
+     * reading historical data through {@link Fitness#HistoryApi} will be executed on main
+     * thread by default.
+     *
+     * @param endTime end time cumulative steps count
+     * @param useDataAggregation aggregating recorded steps count data
+     * @return {@link List<Content>} Historical steps content
+     */
+    @SuppressWarnings("unused")//This is a public API
+    @NonNull
+    public StepsCountResponse getDailyStepCount(long endTime, boolean useDataAggregation) {
+        long[] range = getDailyTimeRangeHistory(endTime);
+        // Invoke the History API to fetch the data with the query and await the result of
+        // the read request.
+        DataReadResult dataReadResult = readStepCountHistory(range[START_TIME], range[END_TIME], useDataAggregation);
+        List<Content> contents = Collections.emptyList();
+        if (dataReadResult.getStatus().isSuccess()) {
+            return new StepsCountResponse(true, contents);
+        } else Log.w(TAG, "There was a problem getting the step count.");
+        return new StepsCountResponse(false, contents);
     }
 
     /**
@@ -205,6 +218,18 @@ public class StepsCountApiHelper {
         cal.setTime(now);
         long endTime = cal.getTimeInMillis();
         cal.add(Calendar.WEEK_OF_YEAR, -1);
+        long startTime = cal.getTimeInMillis();
+
+        Log.i(TAG, "Range Start: " + mDateFormat.format(startTime));
+        Log.i(TAG, "Range End: " + mDateFormat.format(endTime));
+
+        return new long[] {startTime, endTime};
+    }
+
+    private long[] getDailyTimeRangeHistory(long endTime) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(endTime);
+        cal.add(Calendar.DAY_OF_MONTH, -1);
         long startTime = cal.getTimeInMillis();
 
         Log.i(TAG, "Range Start: " + mDateFormat.format(startTime));

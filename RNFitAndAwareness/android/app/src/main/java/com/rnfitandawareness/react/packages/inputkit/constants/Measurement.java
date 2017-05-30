@@ -7,7 +7,7 @@ package com.rnfitandawareness.react.packages.inputkit.constants;
 public class Measurement {
     private Measurement() { }
 
-    public static final int STEPS_COUNT = 0;
+    public static final String STEPS_COUNT = "stepsCount";
     @SuppressWarnings("SpellCheckingInspection")
-    public static final int GEOFENCING = 1;
+    public static final String GEOFENCING = "geofence";
 }

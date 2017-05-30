@@ -84,16 +84,12 @@ public class MonitoringGeofenceApiHelper {
     }
 
     @SuppressWarnings({"SpellCheckingInspection", "MissingPermission"})
-    public void stopSensingSenseHQGeofences() throws SecurityException {
+    public void stopSensingSenseHQGeofences(ResultCallback<Status> resultCallback) throws SecurityException {
         LocationServices.GeofencingApi.removeGeofences(
                 googleApiClient,
                 // This is the same pending intent that was used in addGeofences().
                 geofencePendingIntent
-        ).setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(@NonNull Status status) {
-            }
-        }); // Result processed in onResult().
+        ).setResultCallback(resultCallback); // Result processed in onResult().
     }
 
     /**
@@ -101,7 +97,7 @@ public class MonitoringGeofenceApiHelper {
      * specified geofences. Handles the success or failure results returned by addGeofences().
      */
     @SuppressWarnings({"SpellCheckingInspection", "MissingPermission"})
-    public void startSensingSenseHQGeofences() throws SecurityException {
+    public void startSensingSenseHQGeofences(ResultCallback<Status> resultCallback) throws SecurityException {
         if (!googleApiClient.isConnected()) return;
 
         LocationServices.GeofencingApi.addGeofences(
@@ -112,11 +108,7 @@ public class MonitoringGeofenceApiHelper {
                 // pending intent is used to generate an intent when a matched geofence
                 // transition is observed.
                 geofencePendingIntent
-        ).setResultCallback(new ResultCallback<Status>() {
-            @Override
-            public void onResult(@NonNull Status status) {
-            }
-        }); // Result processed in onResult().
+        ).setResultCallback(resultCallback); // Result processed in onResult().
     }
 
     @SuppressWarnings("SpellCheckingInspection")

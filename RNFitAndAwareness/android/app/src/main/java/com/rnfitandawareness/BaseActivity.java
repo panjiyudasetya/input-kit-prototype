@@ -21,7 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.sense_os.input_kit.eventbus.GAClientConnReceivedEvent;
+import nl.sense_os.input_kit.constant.ConnectionStatus;
+import nl.sense_os.input_kit.eventbus.InputKitConnStatus;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -76,15 +77,15 @@ public abstract class BaseActivity extends ReactActivity {
 
     @Subscribe
     @SuppressWarnings("unused")//This function being used by EventBus
-    public void onInputKitConnReceivedEvent(GAClientConnReceivedEvent event) {
+    public void onInputKitConnectionStatusReceived(InputKitConnStatus event) {
         // receiving Awareness connection event
         if (event == null) return;
 
-        GAClientConnReceivedEvent.Status status = event.getStatus();
+        ConnectionStatus status = event.getStatus();
         String message = event.getMessage();
-        if (status.equals(GAClientConnReceivedEvent.Status.CONNECTED)) {
+        if (status.equals(ConnectionStatus.CONNECTED)) {
             Log.i(TAG, "Connected!!!");
-        } else if (status.equals(GAClientConnReceivedEvent.Status.SIGN_IN_REQUIRED)) {
+        } else if (status.equals(ConnectionStatus.SIGN_IN_REQUIRED)) {
             ConnectionResult connectionResult = event.getConnResult();
             if (connectionResult != null) resolvePlayServiceCredentialProblem(connectionResult);
         }
