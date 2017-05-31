@@ -5,14 +5,16 @@ import {
   View,
   ListView
 } from 'react-native';
-import InputKitModule from '../native/InputKitModule';
 import Measurements from '../constants/Measurements';
 import EmitterEventListener from '../constants/EmitterEventListener';
 import Row from '../components/itemrows/ContentItemRow';
-import { DeviceEventEmitter } from 'react-native';
+import {
+    Awareness,
+    AwarenessDelegate
+ } from '../inputkits';
 
-class GeofencingPage extends Component<any, any> {
-  constructor(props) {
+class GeofencingPage extends Component<any, any> implements AwarenessDelegate {
+    constructor(props) {
     super(props);
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
@@ -20,27 +22,8 @@ class GeofencingPage extends Component<any, any> {
     };
   }
 
-  componentWillMount() {
-    DeviceEventEmitter
-        .addListener(
-            EmitterEventListener.GEOFENCING_EVENT_LISTENER,
-            (data: string) => {
-                console.log('JSGeofence > Emit new event' + data);
-                const GEOFENCE = JSON.parse(data);
-                if (GEOFENCE.geofence_event) {
-                    this.notifyDataSourceChange(GEOFENCE.geofence_event);
-                    console.log('JSGeofence > Geofence > ' + GEOFENCE.geofence_event);
-                }
-            });
-  }
-
-  componentWillUnmount() {
-      DeviceEventEmitter.removeListener(
-          EmitterEventListener.GEOFENCING_EVENT_LISTENER,
-          () => {
-            console.log(EmitterEventListener.GEOFENCING_EVENT_LISTENER + ' removed.');
-          }
-      );
+  onAwarenessUpdated(eventName: string, success: boolean): void {
+    console.log('Receiving awareness updates.');
   }
 
   componentDidMount() {
@@ -65,7 +48,14 @@ class GeofencingPage extends Component<any, any> {
   }
 
   fetchData() {
-      InputKitModule.getGeofencingHistory();
+      Awareness.reqSharedInstance().then((awareness) => {
+          return awareness.getGeoFencingHistory();
+      }).then((data: string) => {
+          const GEOFENCE_HISTORY = JSON.parse(data);
+          this.notifyDataSourceChange(GEOFENCE_HISTORY);
+      }).catch((error) => {
+          console.log(error);
+      });
   }
 }
 

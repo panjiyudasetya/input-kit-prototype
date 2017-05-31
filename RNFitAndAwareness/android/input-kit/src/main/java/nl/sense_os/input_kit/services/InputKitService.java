@@ -25,7 +25,7 @@ import org.greenrobot.eventbus.EventBus;
 import nl.sense_os.input_kit.constant.ConnectionStatus;
 import nl.sense_os.input_kit.eventbus.InputKitConnStatus;
 import nl.sense_os.input_kit.helpers.AlarmHelper;
-import nl.sense_os.input_kit.services.apis.InputKitApisHelper;
+import nl.sense_os.input_kit.services.apis.InputKitWrapperApis;
 
 /**
  * Created by panjiyudasetya on 5/30/17.
@@ -169,7 +169,7 @@ public class InputKitService extends Service
                         status,
                         message,
                         connectionResult,
-                        new InputKitApisHelper(this, mClient))
+                        new InputKitWrapperApis(this, mClient))
                 );
     }
 

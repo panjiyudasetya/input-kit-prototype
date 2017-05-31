@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 
 import nl.sense_os.input_kit.constant.ConnectionStatus;
-import nl.sense_os.input_kit.services.apis.InputKitApisHelper;
+import nl.sense_os.input_kit.services.apis.InputKitWrapperApis;
 
 /**
  * Created by panjiyudasetya on 5/9/17.
@@ -15,7 +15,7 @@ import nl.sense_os.input_kit.services.apis.InputKitApisHelper;
 public class InputKitConnStatus {
     private ConnectionStatus status;
     private String message;
-    private InputKitApisHelper apisHelper;
+    private InputKitWrapperApis apisHelper;
     private ConnectionResult connResult;
 
     public InputKitConnStatus(@NonNull ConnectionStatus status,
@@ -34,7 +34,7 @@ public class InputKitConnStatus {
     public InputKitConnStatus(@NonNull ConnectionStatus status,
                               @NonNull String message,
                               @NonNull ConnectionResult connResult,
-                              @NonNull InputKitApisHelper apisHelper) {
+                              @NonNull InputKitWrapperApis apisHelper) {
         this(status, message, connResult);
         this.apisHelper = apisHelper;
     }
@@ -53,7 +53,7 @@ public class InputKitConnStatus {
     }
 
     @Nullable
-    public InputKitApisHelper getApisHelper() {
+    public InputKitWrapperApis getApisHelper() {
         return apisHelper;
     }
 }

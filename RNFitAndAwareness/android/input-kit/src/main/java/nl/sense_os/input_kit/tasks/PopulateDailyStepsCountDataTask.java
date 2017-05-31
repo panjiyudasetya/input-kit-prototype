@@ -3,8 +3,6 @@ package nl.sense_os.input_kit.tasks;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-
 import java.util.List;
 
 import nl.sense_os.input_kit.entities.Content;
@@ -18,19 +16,21 @@ import static nl.sense_os.input_kit.constant.Preference.STEP_COUNT_CONTENT_KEY;
  * Created by panjiyudasetya on 5/15/17.
  */
 
-public class PopulateStepsCountDataTask extends AsyncTask<Void, Integer, List<Content>> {
-    private static final boolean USE_DATA_AGGREGATION = false;
+public class PopulateDailyStepsCountDataTask extends AsyncTask<Void, Integer, List<Content>> {
+    private static final boolean USE_DATA_AGGREGATION = true;
     private static final DataCacheHelper CACHE = new DataCacheHelper();
-    private final StepsCountApiHelper mModel;
+    private final StepsCountApiHelper mApiHelper;
+    private final long endTime;
 
-    public PopulateStepsCountDataTask(@NonNull GoogleApiClient client) {
-        this.mModel = new StepsCountApiHelper(client);
+    public PopulateDailyStepsCountDataTask(@NonNull StepsCountApiHelper api, long endTime) {
+        this.mApiHelper = api;
+        this.endTime = endTime;
     }
 
     @Override
     protected List<Content> doInBackground(Void... voids) {
         List<Content> cacheContents = CACHE.load(STEP_COUNT_CONTENT_KEY);
-        StepsCountResponse response = mModel.getAllStepCountHistory(USE_DATA_AGGREGATION);
+        StepsCountResponse response = mApiHelper.getDailyStepCount(endTime, USE_DATA_AGGREGATION);
         if (response.isQueryOk()) {
             List<Content> contents = response.getContents();
             CACHE.save(STEP_COUNT_CONTENT_KEY, contents);

@@ -1,15 +1,16 @@
 import Region from '../inputkits/Location';
 
 declare interface GoogleFitBridge {
-    isGoogleApiClientConnected(): Promise<void>;
-    requestPermissions(types: [string]): Promise<void>;
-    getStepCount(date: number): Promise<{ value: number, startDate: number, endDate: number }>;
-    startMonitoring(type: string): Promise<void>;
-    stopMonitoring(type: string): Promise<void>;
+    isGoogleApiClientConnected(): Promise<any>;
+    requestPermissions(types: [string]): Promise<any>;
+    getStepCount(date: number): Promise<any>;
+    startMonitoring(type: string): Promise<any>;
+    stopMonitoring(type: string): Promise<any>;
 }
 
 declare interface AwarenessBridge {
-    requestPermissions(): Promise<void>;
-    startGeoFencing(callback: (region: Region) => {}):Promise<void>;
-    stopGeoFencing(callback: (region: Region) => {}):Promise<void>;
+    requestPermissions(): Promise<any>;
+    startGeoFencing(Callback: ([any]) => {});
+    stopGeoFencing(Callback: ([any]) => {});
+    getGeoFencingHistory():Promise<any>;
 }

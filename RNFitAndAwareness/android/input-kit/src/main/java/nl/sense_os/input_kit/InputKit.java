@@ -12,20 +12,21 @@ import org.greenrobot.eventbus.Subscribe;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import nl.sense_os.input_kit.constant.ConnectionStatus;
 import nl.sense_os.input_kit.entities.Content;
-import nl.sense_os.input_kit.entities.StepsCountResponse;
 import nl.sense_os.input_kit.eventbus.InputKitConnStatus;
 import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
 import nl.sense_os.input_kit.listeners.ResultListener;
 import nl.sense_os.input_kit.services.InputKitService;
 import nl.sense_os.input_kit.services.apis.AwarenessApiHelper;
-import nl.sense_os.input_kit.services.apis.InputKitApisHelper;
+import nl.sense_os.input_kit.services.apis.InputKitWrapperApis;
 import nl.sense_os.input_kit.services.apis.MonitoringGeofenceApiHelper;
 import nl.sense_os.input_kit.services.apis.StepsCountApiHelper;
+import nl.sense_os.input_kit.tasks.PopulateDailyStepsCountDataTask;
 import nl.sense_os.input_kit.tasks.PopulateGeofenceDataTask;
 
 /**
@@ -38,7 +39,7 @@ public class InputKit {
     private static InputKit mInputKitInstance;
     private Context mContext;
     private EventBus mEventBus;
-    private InputKitApisHelper mInputKitApisHelper;
+    private InputKitWrapperApis mInputKitWrapperApis;
     private ConnectionStatus mConnStatus;
 
     private InputKit(@NonNull Context context) {
@@ -66,7 +67,7 @@ public class InputKit {
     public void subscribeActivityDetection() {
         validateActions();
 
-        final AwarenessApiHelper api = mInputKitApisHelper.getAwarenessApi();
+        final AwarenessApiHelper api = mInputKitWrapperApis.getAwarenessApi();
         api.startActivityRecognition();
 
         Log.d(TAG, "subscribeActivityDetection: subscribed");
@@ -76,7 +77,7 @@ public class InputKit {
     public void unsubscribeActivityDetection() {
         validateActions();
 
-        final AwarenessApiHelper api = mInputKitApisHelper.getAwarenessApi();
+        final AwarenessApiHelper api = mInputKitWrapperApis.getAwarenessApi();
         api.stopActivityRecognition();
         Log.d(TAG, "unsubscribeActivityDetection: unsubcribed");
     }
@@ -85,7 +86,7 @@ public class InputKit {
     public void subscribeGeofencing(final @NonNull ResultListener<String> listener) {
         validateActions();
 
-        final MonitoringGeofenceApiHelper api = mInputKitApisHelper.getMonitoringGeofenceApi();
+        final MonitoringGeofenceApiHelper api = mInputKitWrapperApis.getMonitoringGeofenceApi();
         api.stopSensingSenseHQGeofences(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
@@ -103,7 +104,7 @@ public class InputKit {
     public void unsubscribeGeofencing(final @NonNull ResultListener<String> listener) {
         validateActions();
 
-        final MonitoringGeofenceApiHelper api = mInputKitApisHelper.getMonitoringGeofenceApi();
+        final MonitoringGeofenceApiHelper api = mInputKitWrapperApis.getMonitoringGeofenceApi();
         api.stopSensingSenseHQGeofences(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
@@ -122,7 +123,7 @@ public class InputKit {
     public void subscribeDailyStepsCount(final @NonNull ResultListener<String> listener) {
         validateActions();
 
-        final StepsCountApiHelper api = mInputKitApisHelper.getStepsCountApi();
+        final StepsCountApiHelper api = mInputKitWrapperApis.getStepsCountApi();
         api.subscribeStepsCountApi(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
@@ -140,7 +141,7 @@ public class InputKit {
     public void unsubscribeDailyStepsCount(final @NonNull ResultListener<String> listener) {
         validateActions();
 
-        final StepsCountApiHelper api = mInputKitApisHelper.getStepsCountApi();
+        final StepsCountApiHelper api = mInputKitWrapperApis.getStepsCountApi();
         api.unsubscribeStepsCountApi(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
@@ -157,13 +158,18 @@ public class InputKit {
     public void getDailyStepsCountHistory(final long endTime,
                                           final @NonNull ResultListener<List<Content>> listener) {
         validateActions();
-        final StepsCountApiHelper api = mInputKitApisHelper.getStepsCountApi();
+
+        final StepsCountApiHelper api = mInputKitWrapperApis.getStepsCountApi();
         api.subscribeStepsCountApi(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
                 if (status.isSuccess()) {
-                    StepsCountResponse response = api.getDailyStepCount(endTime, true);
-                    listener.onResult(true, response.getContents());
+                    new PopulateDailyStepsCountDataTask(api, endTime) {
+                        @Override
+                        protected void onPostExecute(List<Content> contents) {
+                            listener.onResult(true, contents);
+                        }
+                    }.run();
                 } else listener.onResult(false, Collections.<Content>emptyList());
             }
         });
@@ -192,7 +198,7 @@ public class InputKit {
 
         String message = event.getMessage();
         mConnStatus = event.getStatus();
-        mInputKitApisHelper = event.getApisHelper();
+        mInputKitWrapperApis = event.getApisHelper();
 
         if (mConnStatus.equals(ConnectionStatus.CONNECTED)) notifyAll(true, message);
         else notifyAll(false, message);
@@ -207,20 +213,18 @@ public class InputKit {
         mInputKitListeners.put(eventName, listener);
     }
 
-    private void notifyAll(boolean isAccessible, @NonNull String message) {
-        if (isAccessible) {
-            for (Map.Entry<String, InputKitConnectionListener> listener : mInputKitListeners.entrySet()) {
-                listener.getValue().onInputKitIsAccessible();
-            }
-        } else {
-            for (Map.Entry<String, InputKitConnectionListener> listener : mInputKitListeners.entrySet()) {
-                listener.getValue().onInputKitIsNotAccessible(message);
-            }
+    private synchronized void notifyAll(boolean isAccessible, @NonNull String message) {
+        Iterator<Map.Entry<String, InputKitConnectionListener>> iterator
+                = mInputKitListeners.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, InputKitConnectionListener> item = iterator.next();
+            if (isAccessible) item.getValue().onInputKitIsAccessible();
+            else item.getValue().onInputKitIsNotAccessible(message);
         }
     }
 
     private void validateActions() {
         String errMessage = "Unable to perform this Action until Input Kit available to use.";
-        if (mInputKitApisHelper == null) throw new IllegalStateException(errMessage);
+        if (mInputKitWrapperApis == null) throw new IllegalStateException(errMessage);
     }
 }

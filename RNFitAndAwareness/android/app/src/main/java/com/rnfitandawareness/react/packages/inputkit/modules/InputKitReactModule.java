@@ -4,8 +4,8 @@ import android.support.annotation.NonNull;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
-
-import org.greenrobot.eventbus.EventBus;
+import com.google.gson.Gson;
+import com.rnfitandawareness.BaseActivity;
 
 import nl.sense_os.input_kit.InputKit;
 import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
@@ -15,22 +15,13 @@ import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
  */
 
 public abstract class InputKitReactModule extends ReactContextBaseJavaModule {
+    protected static final Gson GSON = new Gson();
     protected ReactApplicationContext mReactContext;
     protected InputKit mInputKit;
     public InputKitReactModule(ReactApplicationContext reactContext) {
         super(reactContext);
         mReactContext = reactContext;
         mInputKit = InputKit.getInstance(mReactContext);
-    }
-
-    @Override
-    public void initialize() {
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onCatalystInstanceDestroy() {
-        EventBus.getDefault().unregister(this);
     }
 
     protected void connectToInputKit(@NonNull String eventName,
@@ -40,5 +31,18 @@ public abstract class InputKitReactModule extends ReactContextBaseJavaModule {
 
     protected void releaseInputKitConnectionListener(@NonNull String eventName) {
         mInputKit.removeInputKitConnectionListener(eventName);
+    }
+
+    protected boolean checkPermissions(boolean callRequestPermission) {
+        if (BaseActivity.class.isInstance(getCurrentActivity())) {
+            if (callRequestPermission) {
+                return ((BaseActivity) getCurrentActivity())
+                        .checkAndCallRequiredPermissions();
+            } else {
+                return ((BaseActivity) getCurrentActivity())
+                        .showPermissionsDialogIfNotGranted();
+            }
+        }
+        return false;
     }
 }

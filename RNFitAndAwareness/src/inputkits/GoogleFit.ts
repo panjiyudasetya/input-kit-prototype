@@ -20,8 +20,7 @@ class GoogleFit {
         this.delegate = delegate;
     }
 
-    requestPermissions(types: [AvailableType]) {
-        console.log(this.googleFitBridge);
+    requestPermissions(types: [string]) {
         console.log(types);
         return this.googleFitBridge.requestPermissions(types);
     }
@@ -30,7 +29,7 @@ class GoogleFit {
         return this.googleFitBridge.getStepCount(date.getTime());
     }
 
-    startMonitoring(type: AvailableType) {
+    startMonitoring(type: GoogleFitType) {
         let monitoringType: string = '';
         let EMITTER_EVENT_NAME: string = '';
         if (type === 'stepsCount') {
@@ -41,14 +40,14 @@ class GoogleFit {
         if (monitoringType !== '') {
             console.log('Start Monitoring : ' + monitoringType);
             googleFitBridgeEmitter.addListener(EMITTER_EVENT_NAME, (eventName, success) => {
-                console.log(this);
+                console.log('Receive an event from ' + eventName + ', ' + success);
                 this.delegate.onGoogleFitUpdates(eventName, success);
             });
             return this.googleFitBridge.startMonitoring(type);
         }
     }
 
-    stopMonitoring(type: AvailableType) {
+    stopMonitoring(type: GoogleFitType) {
         let monitoringType: string = '';
         let EMITTER_EVENT_NAME: string = '';
         if (type === 'stepsCount') {
@@ -70,7 +69,7 @@ export interface GoogleFitDelegate {
     onGoogleFitUpdates(eventName: string, success: boolean): void;
 }
 
-export type AvailableType = 'stepsCount';
+export type GoogleFitType = 'stepsCount';
 let googleFit: GoogleFit = null;
 
 export default {

@@ -42,7 +42,7 @@ public abstract class BaseActivity extends ReactActivity {
             "com.google.android.gms.permission.ACTIVITY_RECOGNITION"
     };
 
-    public void requestAllPermissions() {
+    private void requestAllPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (!isAllPermissionsGranted(PERMISSIONS)) {
                 ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSIONS_REQ_CODE);
@@ -134,7 +134,7 @@ public abstract class BaseActivity extends ReactActivity {
         return isAllGranted;
     }
 
-    public boolean checkAndShowPermissionsDialog() {
+    public boolean showPermissionsDialogIfNotGranted() {
         boolean isAllGranted = isAllPermissionsGranted(PERMISSIONS);
         if (!isAllGranted) showPermissionsMessageDialog(false);
         return isAllGranted;

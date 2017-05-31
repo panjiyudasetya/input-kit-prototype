@@ -26,49 +26,40 @@ class Awareness {
         return this.awarenessBridge.requestPermissions();
     }
 
-    startGeofencing(type: AvailableType) {
-        let monitoringType: string = '';
-        let EMITTER_EVENT_NAME: string = '';
-        if (type === 'geofence') {
-            monitoringType = 'Geofencing';
-            EMITTER_EVENT_NAME = EmitterEventListener.GEOFENCING_EVENT_LISTENER;
-        }
+    startGeoFencing() {
+        const monitoringType: string = 'Geofencing';
+        const EMITTER_EVENT_NAME: string = EmitterEventListener.GEOFENCING_EVENT_LISTENER;
+        console.log('Start Monitoring : ' + monitoringType);
+        awarenessBridgeEmitter.addListener(EMITTER_EVENT_NAME, (eventName, success) => {
+            console.log(this);
+            this.delegate.onAwarenessUpdated(eventName, success);
+        });
+        return this.awarenessBridge.startGeoFencing(
+            // tslint:disable-next-line:no-empty
+            (region: Region) => {
 
-        if (monitoringType !== '') {
-            console.log('Start Monitoring : ' + monitoringType);
-            awarenessBridgeEmitter.addListener(EMITTER_EVENT_NAME, (eventName, success) => {
-                console.log(this);
-                this.delegate.onAwarenessUpdated(eventName, success);
-            });
-            return this.awarenessBridge.startGeofencing(
-                // tslint:disable-next-line:no-empty
-                (region: Region) => {
-
-                }
-            );
-        }
+            }
+        );
     }
 
-    stopMonitoring(type: AvailableType) {
-        let monitoringType: string = '';
-        let EMITTER_EVENT_NAME: string = '';
-        if (type === 'geofence') {
-            monitoringType = 'Geofencing';
-            EMITTER_EVENT_NAME = EmitterEventListener.GEOFENCING_EVENT_LISTENER;
-        }
+    stopGeoFencing() {
+        const monitoringType: string = 'Geofencing';
+        const EMITTER_EVENT_NAME: string = EmitterEventListener.GEOFENCING_EVENT_LISTENER;
 
-        if (monitoringType !== '') {
-            console.log('Start Monitoring : ' + monitoringType);
-            awarenessBridgeEmitter.removeListener(EMITTER_EVENT_NAME, () => {
-                console.log(EMITTER_EVENT_NAME + ' removed.');
-            });
-            return this.awarenessBridge.stopGeoFencing(
-                // tslint:disable-next-line:no-empty
-                (region: Region) => {
+        console.log('Start Monitoring : ' + monitoringType);
+        awarenessBridgeEmitter.removeListener(EMITTER_EVENT_NAME, () => {
+            console.log(EMITTER_EVENT_NAME + ' removed.');
+        });
+        return this.awarenessBridge.stopGeoFencing(
+            // tslint:disable-next-line:no-empty
+            (region: Region) => {
 
-                }
-            );
-        }
+            }
+        );
+    }
+
+    getGeoFencingHistory() {
+        return this.awarenessBridge.getGeoFencingHistory();
     }
 }
 
@@ -76,7 +67,7 @@ export interface AwarenessDelegate {
     onAwarenessUpdated(eventName: string, success: boolean): void;
 }
 
-export type AvailableType = 'geofence';
+export type AwarenessType = 'geofence';
 let awareness: Awareness = null;
 
 export default {

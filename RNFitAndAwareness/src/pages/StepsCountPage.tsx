@@ -5,13 +5,17 @@ import {
   View,
   ListView
 } from 'react-native';
-import InputKitModule from '../native/InputKitModule';
 import Measurements from '../constants/Measurements';
 import EmitterEventListener from '../constants/EmitterEventListener';
 import Row from '../components/itemrows/ContentItemRow';
+import InputKit from '../inputkits';
 import { DeviceEventEmitter } from 'react-native';
+import {
+    GoogleFit,
+    GoogleFitDelegate
+ } from '../inputkits';
 
-class StepsCountPage extends Component<any, any> {
+class StepsCountPage extends Component<any, any> implements GoogleFitDelegate {
   constructor(props) {
     super(props);
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -20,27 +24,14 @@ class StepsCountPage extends Component<any, any> {
     };
   }
 
-  componentWillMount() {
-    DeviceEventEmitter
-        .addListener(
-            EmitterEventListener.STEPS_COUNT_EVENT_LISTENER,
-            (data: string) => {
-                console.log('JSStepsCount > Emit new event' + data);
-                const STEPS_COUNT = JSON.parse(data);
-                if (STEPS_COUNT.steps_count_event) {
-                    this.notifyDataSourceChange(STEPS_COUNT.steps_count_event);
-                    console.log('JSStepsCount > Steps count > ' + STEPS_COUNT.steps_count_event);
-                }
-            });
+  onGoogleFitUpdates(eventName: string, success: boolean): void {
+    console.debug('Receiving google fit updates.');
   }
 
-  componentWillUnmount() {
-      DeviceEventEmitter.removeListener(
-          EmitterEventListener.STEPS_COUNT_EVENT_LISTENER,
-          () => {
-            console.log(EmitterEventListener.STEPS_COUNT_EVENT_LISTENER + ' removed.');
-          }
-      );
+  componentWillMount() {
+    GoogleFit.reqSharedInstance().then((googleFit) => {
+        googleFit.setDelegate(this);
+    });
   }
 
   componentDidMount() {
@@ -65,7 +56,14 @@ class StepsCountPage extends Component<any, any> {
   }
 
   fetchData() {
-      InputKitModule.getStepsCountHistory();
+      GoogleFit.reqSharedInstance().then((googleFit) => {
+          return googleFit.getStepCount(new Date());
+      }).then((data: string) => {
+          const STEPS_COUNT = JSON.parse(data);
+          this.notifyDataSourceChange(STEPS_COUNT);
+      }).catch((error) => {
+          console.log(error);
+      });
   }
 }
 

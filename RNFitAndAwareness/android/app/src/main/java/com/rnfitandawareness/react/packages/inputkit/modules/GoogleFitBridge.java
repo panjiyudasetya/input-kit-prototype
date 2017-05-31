@@ -6,14 +6,13 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
-import com.google.gson.Gson;
 import com.rnfitandawareness.react.packages.inputkit.constants.Measurement;
 
 import java.util.List;
 
-import nl.sense_os.input_kit.listeners.ResultListener;
 import nl.sense_os.input_kit.entities.Content;
 import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
+import nl.sense_os.input_kit.listeners.ResultListener;
 
 import static nl.sense_os.input_kit.constant.InputKitEventName.COLLECT_STEPS_COUNT_EVENT;
 import static nl.sense_os.input_kit.constant.InputKitEventName.PLAY_SERVICE_CONNECTION_EVENT;
@@ -25,7 +24,6 @@ import static nl.sense_os.input_kit.constant.InputKitEventName.UNSUBSCRIBE_STEPS
  */
 
 public class GoogleFitBridge extends InputKitReactModule {
-    private static final Gson GSON = new Gson();
     private static final String GOOGLE_FIT_MODULE_NAME = "GoogleFitBridge";
     private static final String TAG = GOOGLE_FIT_MODULE_NAME;
 
@@ -63,7 +61,8 @@ public class GoogleFitBridge extends InputKitReactModule {
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
     public void requestPermissions(ReadableArray permissions, Promise promise) {
-
+        if (checkPermissions(true)) promise.resolve("All permission has been granted.");
+        else promise.reject(new Throwable("All permission should be granted."));
     }
 
     @ReactMethod
@@ -76,11 +75,13 @@ public class GoogleFitBridge extends InputKitReactModule {
      *     "endDate" : 1403654400000L
      * }
      */
-    public void getStepCount(final long date, final Promise promise) {
+    public void getStepCount(final float date, final Promise promise) {
+        if (!validateAction(promise)) return;
+
         connectToInputKit(COLLECT_STEPS_COUNT_EVENT, new InputKitConnectionListener() {
             @Override
             public void onInputKitIsAccessible() {
-                mInputKit.getDailyStepsCountHistory(date, new ResultListener<List<Content>>() {
+                mInputKit.getDailyStepsCountHistory((long) date, new ResultListener<List<Content>>() {
                     @Override
                     public void onResult(boolean isSuccess, @NonNull List<Content> data) {
                         if (isSuccess) promise.resolve(GSON.toJson(data));
@@ -101,6 +102,8 @@ public class GoogleFitBridge extends InputKitReactModule {
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
     public void startMonitoring(final String type, final Promise promise) {
+        if (!validateAction(promise)) return;
+
         if (type.equals(Measurement.STEPS_COUNT)) {
             connectToInputKit(SUBSCRIBE_STEPS_COUNT_EVENT, new InputKitConnectionListener() {
                 @Override
@@ -127,11 +130,13 @@ public class GoogleFitBridge extends InputKitReactModule {
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
     public void stopMonitoring(final String type, final Promise promise) {
+        if (!validateAction(promise)) return;
+
         if (type.equals(Measurement.STEPS_COUNT)) {
             connectToInputKit(UNSUBSCRIBE_STEPS_COUNT_EVENT, new InputKitConnectionListener() {
                 @Override
                 public void onInputKitIsAccessible() {
-                    mInputKit.subscribeDailyStepsCount(new ResultListener<String>() {
+                    mInputKit.unsubscribeDailyStepsCount(new ResultListener<String>() {
                         @Override
                         public void onResult(boolean isSuccess, @NonNull String data) {
                             if (isSuccess) promise.resolve(data);
@@ -148,5 +153,13 @@ public class GoogleFitBridge extends InputKitReactModule {
                 }
             });
         } else promise.reject(new Throwable("Unknown monitoring type : " + type));
+    }
+
+    private boolean validateAction(Promise promise) {
+        if (!checkPermissions(false)) {
+            promise.reject(new Throwable("Unable to perform this action due to some permission issue"));
+            return false;
+        }
+        return true;
     }
 }
