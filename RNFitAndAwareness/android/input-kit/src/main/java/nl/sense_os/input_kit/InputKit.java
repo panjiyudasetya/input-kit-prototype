@@ -11,10 +11,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import nl.sense_os.input_kit.constant.ConnectionStatus;
 import nl.sense_os.input_kit.entities.Content;
@@ -35,32 +32,36 @@ import nl.sense_os.input_kit.tasks.PopulateGeofenceDataTask;
 
 public class InputKit {
     private static final String TAG = "INPUT_KIT_API";
-    private final Map<String, InputKitConnectionListener> mInputKitListeners = new HashMap<>();
-    private static InputKit mInputKitInstance;
+    private static InputKit sInputKitInstance;
     private Context mContext;
     private EventBus mEventBus;
+    private ConnectionObserver mObserver;
     private InputKitWrapperApis mInputKitWrapperApis;
-    private ConnectionStatus mConnStatus;
 
     private InputKit(@NonNull Context context) {
         mContext = context;
+        mObserver = new ConnectionObserver();
         mEventBus = EventBus.getDefault();
         if (!mEventBus.isRegistered(this)) mEventBus.register(InputKit.this);
     }
 
     public static synchronized InputKit getInstance(@NonNull Context context) {
-        if (mInputKitInstance == null) {
-            mInputKitInstance = new InputKit(context);
+        if (sInputKitInstance == null) {
+            sInputKitInstance = new InputKit(context);
         }
-        return mInputKitInstance;
+        return sInputKitInstance;
     }
 
     public void connect(@NonNull String eventName,
                         @NonNull InputKitConnectionListener listener) {
-        addInputKitConnectionListener(eventName, listener);
+        mObserver.addObserver(eventName, listener);
         mContext.startService(
                 InputKitService.withContext(mContext)
         );
+    }
+
+    public void removeConnectionListener(@NonNull String eventName) {
+        mObserver.removeObserver(eventName);
     }
 
     @SuppressWarnings("SpellCheckingInspection")
@@ -197,30 +198,11 @@ public class InputKit {
         if (event == null) return;
 
         String message = event.getMessage();
-        mConnStatus = event.getStatus();
+        ConnectionStatus connStatus = event.getStatus();
         mInputKitWrapperApis = event.getApisHelper();
 
-        if (mConnStatus.equals(ConnectionStatus.CONNECTED)) notifyAll(true, message);
-        else notifyAll(false, message);
-    }
-
-    public void removeInputKitConnectionListener(@NonNull String eventName) {
-        mInputKitListeners.remove(eventName);
-    }
-
-    private void addInputKitConnectionListener(@NonNull String eventName,
-                                               @NonNull InputKitConnectionListener listener) {
-        mInputKitListeners.put(eventName, listener);
-    }
-
-    private synchronized void notifyAll(boolean isAccessible, @NonNull String message) {
-        Iterator<Map.Entry<String, InputKitConnectionListener>> iterator
-                = mInputKitListeners.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, InputKitConnectionListener> item = iterator.next();
-            if (isAccessible) item.getValue().onInputKitIsAccessible();
-            else item.getValue().onInputKitIsNotAccessible(message);
-        }
+        if (connStatus.equals(ConnectionStatus.CONNECTED)) mObserver.notifyAll(true, message);
+        else mObserver.notifyAll(false, message);
     }
 
     private void validateActions() {

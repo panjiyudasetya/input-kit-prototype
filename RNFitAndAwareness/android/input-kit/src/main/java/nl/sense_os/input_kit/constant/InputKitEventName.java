@@ -15,5 +15,6 @@ public class InputKitEventName {
     public static final String UNSUBSCRIBE_ACTIVITY_DETECTION_EVENT = "UNSUBSCRIBE_ACTIVITY_DETECTION_EVENT";
     public static final String SUBSCRIBE_GEOFENCE_EVENT = "SUBSCRIBE_GEOFENCE_EVENT";
     public static final String UNSUBSCRIBE_GEOFENCE_EVENT = "UNSUBSCRIBE_GEOFENCE_EVENT";
+    public static final String COLLECT_GEOFENCE_EVENT = "COLLECT_GEOFENCE_EVENT";
     public static final String LOCATION_UPDATES_EVENT = "LOCATION_UPDATES_EVENT";
 }

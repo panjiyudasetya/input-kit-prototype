@@ -5,11 +5,9 @@ package nl.sense_os.input_kit.constant;
  */
 
 public enum ConnectionStatus {
+    INITIALIZING,
     CONNECTED,
     CONN_SUSPENDED,
     CONN_FAILED,
-    SUCCESSFULLY_SUBSCRIBED,
-    ALREADY_SUBSCRIBED,
-    FAILURE_TO_SUBSCRIBE,
     SIGN_IN_REQUIRED
 }

@@ -20,6 +20,7 @@ import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
 import nl.sense_os.input_kit.listeners.ResultListener;
 
 import static com.rnfitandawareness.react.packages.inputkit.constants.InputKitEmitterEvents.GEOFENCING_EVENT_LISTENER;
+import static nl.sense_os.input_kit.constant.InputKitEventName.COLLECT_GEOFENCE_EVENT;
 import static nl.sense_os.input_kit.constant.InputKitEventName.SUBSCRIBE_GEOFENCE_EVENT;
 import static nl.sense_os.input_kit.constant.InputKitEventName.UNSUBSCRIBE_GEOFENCE_EVENT;
 
@@ -30,6 +31,11 @@ import static nl.sense_os.input_kit.constant.InputKitEventName.UNSUBSCRIBE_GEOFE
 public class AwarenessBridge extends InputKitReactModule {
     private static final String AWARENESS_MODULE_NAME = "AwarenessBridge";
     private static final String TAG = AWARENESS_MODULE_NAME;
+    private static final String[] POSSIBILITY_REGISTERED_EVENTS = {
+            SUBSCRIBE_GEOFENCE_EVENT,
+            UNSUBSCRIBE_GEOFENCE_EVENT,
+            COLLECT_GEOFENCE_EVENT
+    };
 
     @SuppressWarnings("unused") // Used by React Native
     public AwarenessBridge(ReactApplicationContext reactContext) {
@@ -71,15 +77,15 @@ public class AwarenessBridge extends InputKitReactModule {
                         System.out.println("Subscribing geofence : " + isSuccess + ", " + data);
                         if (isSuccess) promise.resolve(data);
                         else promise.reject(new Throwable(data));
-                        releaseInputKitConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
+                        removeConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
                     }
                 });
             }
 
             @Override
             public void onInputKitIsNotAccessible(String reason) {
-                releaseInputKitConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
                 promise.reject(new Throwable(reason));
+                removeConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
             }
         });
     }
@@ -98,15 +104,15 @@ public class AwarenessBridge extends InputKitReactModule {
                         System.out.println("Unsubscribing geofence : " + isSuccess + ", " + data);
                         if (isSuccess) promise.resolve(data);
                         else promise.reject(new Throwable(data));
-                        releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
+                        removeConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
                     }
                 });
             }
 
             @Override
             public void onInputKitIsNotAccessible(String reason) {
-                releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
                 promise.reject(new Throwable(reason));
+                removeConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
             }
         });
     }
@@ -116,7 +122,7 @@ public class AwarenessBridge extends InputKitReactModule {
     public void getGeoFencingHistory(final Promise promise) {
         if (!checkPermissions(false)) return;
 
-        connectToInputKit(UNSUBSCRIBE_GEOFENCE_EVENT, new InputKitConnectionListener() {
+        connectToInputKit(COLLECT_GEOFENCE_EVENT, new InputKitConnectionListener() {
             @Override
             public void onInputKitIsAccessible() {
                 mInputKit.getGeofencingHistory(new ResultListener<List<Content>>() {
@@ -125,7 +131,7 @@ public class AwarenessBridge extends InputKitReactModule {
                         System.out.println("Receiving geofence data : " + GSON.toJson(data));
                         if (isSuccess) promise.resolve(GSON.toJson(data));
                         else promise.reject(new Throwable("Unable to get geofencing history"));
-                        releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
+                        removeConnectionListener(COLLECT_GEOFENCE_EVENT);
                     }
                 });
             }
@@ -133,7 +139,7 @@ public class AwarenessBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 promise.reject(new Throwable(reason));
-                releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
+                removeConnectionListener(COLLECT_GEOFENCE_EVENT);
             }
         });
     }

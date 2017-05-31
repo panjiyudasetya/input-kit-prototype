@@ -46,13 +46,13 @@ public class GoogleFitBridge extends InputKitReactModule {
                     @Override
                     public void onInputKitIsAccessible() {
                         promise.resolve("Successfully connect to Input Kit");
-                        releaseInputKitConnectionListener(PLAY_SERVICE_CONNECTION_EVENT);
+                        removeConnectionListener(PLAY_SERVICE_CONNECTION_EVENT);
                     }
 
                     @Override
                     public void onInputKitIsNotAccessible(String reason) {
                         promise.reject(new Throwable(reason));
-                        releaseInputKitConnectionListener(PLAY_SERVICE_CONNECTION_EVENT);
+                        removeConnectionListener(PLAY_SERVICE_CONNECTION_EVENT);
                     }
                 }
         );
@@ -87,7 +87,7 @@ public class GoogleFitBridge extends InputKitReactModule {
                         System.out.println("Receiving steps count : " + isSuccess + ", " + data);
                         if (isSuccess) promise.resolve(GSON.toJson(data));
                         else promise.reject(new Throwable("Unable to get daily steps counts"));
-                        releaseInputKitConnectionListener(COLLECT_STEPS_COUNT_EVENT);
+                        removeConnectionListener(COLLECT_STEPS_COUNT_EVENT);
                     }
                 });
             }
@@ -95,7 +95,7 @@ public class GoogleFitBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 promise.reject(new Throwable(reason));
-                releaseInputKitConnectionListener(COLLECT_STEPS_COUNT_EVENT);
+                removeConnectionListener(COLLECT_STEPS_COUNT_EVENT);
             }
         });
     }
@@ -115,15 +115,15 @@ public class GoogleFitBridge extends InputKitReactModule {
                             System.out.println("Start monitoring steps count : " + isSuccess + ", " + data);
                             if (isSuccess) promise.resolve(data);
                             else promise.reject(new Throwable(data));
+                            removeConnectionListener(SUBSCRIBE_STEPS_COUNT_EVENT);
                         }
                     });
-                    releaseInputKitConnectionListener(SUBSCRIBE_STEPS_COUNT_EVENT);
                 }
 
                 @Override
                 public void onInputKitIsNotAccessible(String reason) {
                     promise.reject(new Throwable(reason));
-                    releaseInputKitConnectionListener(SUBSCRIBE_STEPS_COUNT_EVENT);
+                    removeConnectionListener(SUBSCRIBE_STEPS_COUNT_EVENT);
                 }
             });
         } else promise.reject(new Throwable("Unknown monitoring type : " + type));
@@ -143,7 +143,7 @@ public class GoogleFitBridge extends InputKitReactModule {
                         public void onResult(boolean isSuccess, @NonNull String data) {
                             if (isSuccess) promise.resolve(data);
                             else promise.reject(new Throwable(data));
-                            releaseInputKitConnectionListener(UNSUBSCRIBE_STEPS_COUNT_EVENT);
+                            removeConnectionListener(UNSUBSCRIBE_STEPS_COUNT_EVENT);
                         }
                     });
                 }
@@ -151,7 +151,7 @@ public class GoogleFitBridge extends InputKitReactModule {
                 @Override
                 public void onInputKitIsNotAccessible(String reason) {
                     promise.reject(new Throwable(reason));
-                    releaseInputKitConnectionListener(UNSUBSCRIBE_STEPS_COUNT_EVENT);
+                    removeConnectionListener(UNSUBSCRIBE_STEPS_COUNT_EVENT);
                 }
             });
         } else promise.reject(new Throwable("Unknown monitoring type : " + type));
