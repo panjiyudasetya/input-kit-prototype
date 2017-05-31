@@ -10,7 +10,7 @@ declare interface GoogleFitBridge {
 
 declare interface AwarenessBridge {
     requestPermissions(): Promise<any>;
-    startGeoFencing(Callback: ([any]) => {});
-    stopGeoFencing(Callback: ([any]) => {});
+    startGeoFencing(): Promise<any>;
+    stopGeoFencing(): Promise<any>;
     getGeoFencingHistory():Promise<any>;
 }

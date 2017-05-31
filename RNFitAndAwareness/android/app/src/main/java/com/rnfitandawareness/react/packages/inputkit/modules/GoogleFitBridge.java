@@ -84,6 +84,7 @@ public class GoogleFitBridge extends InputKitReactModule {
                 mInputKit.getDailyStepsCountHistory((long) date, new ResultListener<List<Content>>() {
                     @Override
                     public void onResult(boolean isSuccess, @NonNull List<Content> data) {
+                        System.out.println("Receiving steps count : " + isSuccess + ", " + data);
                         if (isSuccess) promise.resolve(GSON.toJson(data));
                         else promise.reject(new Throwable("Unable to get daily steps counts"));
                         releaseInputKitConnectionListener(COLLECT_STEPS_COUNT_EVENT);
@@ -111,6 +112,7 @@ public class GoogleFitBridge extends InputKitReactModule {
                     mInputKit.subscribeDailyStepsCount(new ResultListener<String>() {
                         @Override
                         public void onResult(boolean isSuccess, @NonNull String data) {
+                            System.out.println("Start monitoring steps count : " + isSuccess + ", " + data);
                             if (isSuccess) promise.resolve(data);
                             else promise.reject(new Throwable(data));
                         }

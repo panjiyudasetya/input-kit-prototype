@@ -87,7 +87,7 @@ public class InputKit {
         validateActions();
 
         final MonitoringGeofenceApiHelper api = mInputKitWrapperApis.getMonitoringGeofenceApi();
-        api.stopSensingSenseHQGeofences(new ResultCallback<Status>() {
+        api.startSensingSenseHQGeofences(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
                 if (status.isSuccess()) listener.onResult(true, "subscribeGeofencing: subscribed.");

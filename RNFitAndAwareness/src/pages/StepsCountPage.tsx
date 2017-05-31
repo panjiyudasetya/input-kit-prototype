@@ -59,6 +59,7 @@ class StepsCountPage extends Component<any, any> implements GoogleFitDelegate {
       GoogleFit.reqSharedInstance().then((googleFit) => {
           return googleFit.getStepCount(new Date());
       }).then((data: string) => {
+          console.log('JSReceiving steps count data : ' + data);
           const STEPS_COUNT = JSON.parse(data);
           this.notifyDataSourceChange(STEPS_COUNT);
       }).catch((error) => {

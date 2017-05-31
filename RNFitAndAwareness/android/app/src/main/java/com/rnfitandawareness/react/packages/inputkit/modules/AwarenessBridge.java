@@ -4,12 +4,10 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.rnfitandawareness.helpers.JsonHelper;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -17,13 +15,13 @@ import org.greenrobot.eventbus.Subscribe;
 import java.util.List;
 
 import nl.sense_os.input_kit.entities.Content;
-import nl.sense_os.input_kit.listeners.ResultListener;
 import nl.sense_os.input_kit.eventbus.GeofenceEvent;
 import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
+import nl.sense_os.input_kit.listeners.ResultListener;
 
+import static com.rnfitandawareness.react.packages.inputkit.constants.InputKitEmitterEvents.GEOFENCING_EVENT_LISTENER;
 import static nl.sense_os.input_kit.constant.InputKitEventName.SUBSCRIBE_GEOFENCE_EVENT;
 import static nl.sense_os.input_kit.constant.InputKitEventName.UNSUBSCRIBE_GEOFENCE_EVENT;
-import static com.rnfitandawareness.react.packages.inputkit.constants.InputKitEmitterEvents.GEOFENCING_EVENT_LISTENER;
 
 /**
  * Created by panjiyudasetya on 5/30/17.
@@ -61,7 +59,7 @@ public class AwarenessBridge extends InputKitReactModule {
 
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
-    public void startGeoFencing(final Callback callback) {
+    public void startGeoFencing(final Promise promise) {
         if (!checkPermissions(false)) return;
 
         connectToInputKit(SUBSCRIBE_GEOFENCE_EVENT, new InputKitConnectionListener() {
@@ -70,7 +68,9 @@ public class AwarenessBridge extends InputKitReactModule {
                 mInputKit.subscribeGeofencing(new ResultListener<String>() {
                     @Override
                     public void onResult(boolean isSuccess, @NonNull String data) {
-                        if (isSuccess) callback.invoke(data);
+                        System.out.println("Subscribing geofence : " + isSuccess + ", " + data);
+                        if (isSuccess) promise.resolve(data);
+                        else promise.reject(new Throwable(data));
                         releaseInputKitConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
                     }
                 });
@@ -79,13 +79,14 @@ public class AwarenessBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 releaseInputKitConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
+                promise.reject(new Throwable(reason));
             }
         });
     }
 
     @ReactMethod
     @SuppressWarnings({"unused", "SpellCheckingInspection"})//Used by React Native application
-    public void stopGeoFencing(final Callback callback) {
+    public void stopGeoFencing(final Promise promise) {
         if (!checkPermissions(false)) return;
 
         connectToInputKit(UNSUBSCRIBE_GEOFENCE_EVENT, new InputKitConnectionListener() {
@@ -94,7 +95,9 @@ public class AwarenessBridge extends InputKitReactModule {
                 mInputKit.unsubscribeGeofencing(new ResultListener<String>() {
                     @Override
                     public void onResult(boolean isSuccess, @NonNull String data) {
-                        if (isSuccess) callback.invoke(data);
+                        System.out.println("Unsubscribing geofence : " + isSuccess + ", " + data);
+                        if (isSuccess) promise.resolve(data);
+                        else promise.reject(new Throwable(data));
                         releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
                     }
                 });
@@ -103,6 +106,7 @@ public class AwarenessBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
+                promise.reject(new Throwable(reason));
             }
         });
     }
@@ -118,6 +122,7 @@ public class AwarenessBridge extends InputKitReactModule {
                 mInputKit.getGeofencingHistory(new ResultListener<List<Content>>() {
                     @Override
                     public void onResult(boolean isSuccess, @NonNull List<Content> data) {
+                        System.out.println("Receiving geofence data : " + GSON.toJson(data));
                         if (isSuccess) promise.resolve(GSON.toJson(data));
                         else promise.reject(new Throwable("Unable to get geofencing history"));
                         releaseInputKitConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
@@ -137,10 +142,10 @@ public class AwarenessBridge extends InputKitReactModule {
     @SuppressWarnings({"unused", "SpellCheckingInspection"})//Used by React Native application
     public void onGefenceEventReceived(final GeofenceEvent event) {
         new AsyncTask<Void, Integer, Exception>() {
-            private String contentsJson;
+            private String contentsJson = null;
             @Override
             protected Exception doInBackground(Void... voids) {
-                contentsJson = JsonHelper.toJson("geofence_event", event.getContents());
+                contentsJson = GSON.toJson(event.getContents());
                 return null;
             }
 

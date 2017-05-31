@@ -32,14 +32,11 @@ class Awareness {
         console.log('Start Monitoring : ' + monitoringType);
         awarenessBridgeEmitter.addListener(EMITTER_EVENT_NAME, (eventName, success) => {
             console.log(this);
-            this.delegate.onAwarenessUpdated(eventName, success);
-        });
-        return this.awarenessBridge.startGeoFencing(
-            // tslint:disable-next-line:no-empty
-            (region: Region) => {
-
+            if (this.delegate !== undefined) {
+                this.delegate.onAwarenessUpdated(eventName, success);
             }
-        );
+        });
+        return this.awarenessBridge.startGeoFencing();
     }
 
     stopGeoFencing() {
@@ -50,12 +47,7 @@ class Awareness {
         awarenessBridgeEmitter.removeListener(EMITTER_EVENT_NAME, () => {
             console.log(EMITTER_EVENT_NAME + ' removed.');
         });
-        return this.awarenessBridge.stopGeoFencing(
-            // tslint:disable-next-line:no-empty
-            (region: Region) => {
-
-            }
-        );
+        return this.awarenessBridge.stopGeoFencing();
     }
 
     getGeoFencingHistory() {

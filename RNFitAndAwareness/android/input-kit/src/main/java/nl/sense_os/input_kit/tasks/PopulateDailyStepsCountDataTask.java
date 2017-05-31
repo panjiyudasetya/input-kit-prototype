@@ -30,7 +30,7 @@ public class PopulateDailyStepsCountDataTask extends AsyncTask<Void, Integer, Li
     @Override
     protected List<Content> doInBackground(Void... voids) {
         List<Content> cacheContents = CACHE.load(STEP_COUNT_CONTENT_KEY);
-        StepsCountResponse response = mApiHelper.getDailyStepCount(endTime, USE_DATA_AGGREGATION);
+        StepsCountResponse response = mApiHelper.getAllStepCountHistory(USE_DATA_AGGREGATION);
         if (response.isQueryOk()) {
             List<Content> contents = response.getContents();
             CACHE.save(STEP_COUNT_CONTENT_KEY, contents);
