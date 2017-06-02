@@ -1,7 +1,6 @@
 package com.rnfitandawareness.react.packages.inputkit.modules;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -28,10 +27,6 @@ public abstract class InputKitReactModule extends ReactContextBaseJavaModule {
     protected void connectToInputKit(@NonNull String eventName,
                                      @NonNull InputKitConnectionListener listener) {
         mInputKit.connect(eventName, listener);
-    }
-
-    protected void removeConnectionListener(@Nullable String eventName) {
-        mInputKit.removeConnectionListener(eventName);
     }
 
     protected boolean checkPermissions(boolean callRequestPermission) {

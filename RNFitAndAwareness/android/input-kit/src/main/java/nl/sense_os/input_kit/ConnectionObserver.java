@@ -3,9 +3,8 @@ package nl.sense_os.input_kit;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
 
@@ -14,15 +13,15 @@ import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
  */
 
 public class ConnectionObserver {
-    private final ConcurrentMap<String, InputKitConnectionListener> mObserver = new ConcurrentHashMap<>();
+    private final Map<String, InputKitConnectionListener> mObserver = new HashMap<>();
 
-    public void removeObserver(@Nullable String eventName) {
-        mObserver.remove(eventName);
+    private void removeObserver(@Nullable String eventName) {
+        mObserver.put(eventName, null);
     }
 
     public void addObserver(@NonNull String eventName,
                             @NonNull InputKitConnectionListener listener) {
-        mObserver.putIfAbsent(eventName, listener);
+        mObserver.put(eventName, listener);
     }
 
     public void notifyAll(boolean isAccessible, @NonNull String message) {
@@ -31,6 +30,7 @@ public class ConnectionObserver {
             if (listener == null) continue;
             if (isAccessible) listener.onInputKitIsAccessible();
             else listener.onInputKitIsNotAccessible(message);
+            removeObserver(consumer.getKey());
         }
     }
 }

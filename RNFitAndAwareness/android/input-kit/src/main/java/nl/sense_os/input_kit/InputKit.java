@@ -60,10 +60,6 @@ public class InputKit {
         );
     }
 
-    public void removeConnectionListener(@NonNull String eventName) {
-        mObserver.removeObserver(eventName);
-    }
-
     @SuppressWarnings("SpellCheckingInspection")
     public void subscribeActivityDetection() {
         validateActions();

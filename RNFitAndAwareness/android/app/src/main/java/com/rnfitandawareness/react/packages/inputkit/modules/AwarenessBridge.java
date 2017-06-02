@@ -77,7 +77,6 @@ public class AwarenessBridge extends InputKitReactModule {
                         System.out.println("Subscribing geofence : " + isSuccess + ", " + data);
                         if (isSuccess) promise.resolve(data);
                         else promise.reject(new Throwable(data));
-                        removeConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
                     }
                 });
             }
@@ -85,7 +84,6 @@ public class AwarenessBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 promise.reject(new Throwable(reason));
-                removeConnectionListener(SUBSCRIBE_GEOFENCE_EVENT);
             }
         });
     }
@@ -104,7 +102,6 @@ public class AwarenessBridge extends InputKitReactModule {
                         System.out.println("Unsubscribing geofence : " + isSuccess + ", " + data);
                         if (isSuccess) promise.resolve(data);
                         else promise.reject(new Throwable(data));
-                        removeConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
                     }
                 });
             }
@@ -112,7 +109,6 @@ public class AwarenessBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 promise.reject(new Throwable(reason));
-                removeConnectionListener(UNSUBSCRIBE_GEOFENCE_EVENT);
             }
         });
     }
@@ -131,7 +127,6 @@ public class AwarenessBridge extends InputKitReactModule {
                         System.out.println("Receiving geofence data : " + GSON.toJson(data));
                         if (isSuccess) promise.resolve(GSON.toJson(data));
                         else promise.reject(new Throwable("Unable to get geofencing history"));
-                        removeConnectionListener(COLLECT_GEOFENCE_EVENT);
                     }
                 });
             }
@@ -139,7 +134,6 @@ public class AwarenessBridge extends InputKitReactModule {
             @Override
             public void onInputKitIsNotAccessible(String reason) {
                 promise.reject(new Throwable(reason));
-                removeConnectionListener(COLLECT_GEOFENCE_EVENT);
             }
         });
     }
