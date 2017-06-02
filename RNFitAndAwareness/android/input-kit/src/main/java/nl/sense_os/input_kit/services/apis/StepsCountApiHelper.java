@@ -37,6 +37,7 @@ public class StepsCountApiHelper {
     private static final String TAG = "STEP_COUNT_TASK";
     private static final int START_TIME = 0;
     private static final int END_TIME = 1;
+    private static final int LIMIT_OF_HISTORICAL_DATA = 1000;
 
     // This is the date of Google Fit first release.
     private static final long BEGINNING_OF_THE_TIME = 1403654400000L;
@@ -84,6 +85,7 @@ public class StepsCountApiHelper {
         DataReadResult dataReadResult = readStepCountHistory(range[START_TIME], range[END_TIME], useDataAggregation);
         List<Content> contents = Collections.emptyList();
         if (dataReadResult.getStatus().isSuccess()) {
+            contents = extractDataRead(dataReadResult, useDataAggregation);
             return new StepsCountResponse(true, contents);
         } else Log.w(TAG, "There was a problem getting the step count.");
         return new StepsCountResponse(false, contents);
@@ -97,7 +99,6 @@ public class StepsCountApiHelper {
      *
      * @return {@link List<Content>} Historical steps content
      */
-    @SuppressWarnings("unused")//This is a public API
     @NonNull
     public StepsCountResponse getWeeklyStepCount(boolean useDataAggregation) {
         long[] range = getTimeRangeHistory();
@@ -106,6 +107,7 @@ public class StepsCountApiHelper {
         DataReadResult dataReadResult = readStepCountHistory(range[START_TIME], range[END_TIME], useDataAggregation);
         List<Content> contents = Collections.emptyList();
         if (dataReadResult.getStatus().isSuccess()) {
+            contents = extractDataRead(dataReadResult, useDataAggregation);
             return new StepsCountResponse(true, contents);
         } else Log.w(TAG, "There was a problem getting the step count.");
         return new StepsCountResponse(false, contents);
@@ -127,15 +129,18 @@ public class StepsCountApiHelper {
         DataReadResult dataReadResult = readStepCountHistory(BEGINNING_OF_THE_TIME, range[END_TIME], useDataAggregation);
         List<Content> contents = Collections.emptyList();
         if (dataReadResult.getStatus().isSuccess()) {
-            if (useDataAggregation) {
-                contents = createContentFromBucket(dataReadResult.getBuckets());
-                return new StepsCountResponse(true, contents);
-            } else {
-                contents = dumpDataSets(dataReadResult.getDataSets());
-                return new StepsCountResponse(true, contents);
-            }
+            contents = extractDataRead(dataReadResult, useDataAggregation);
+            return new StepsCountResponse(true, contents);
         } else Log.w(TAG, "There was a problem getting the step count.");
         return new StepsCountResponse(false, contents);
+    }
+
+    private List<Content> extractDataRead(DataReadResult dataReadResult, boolean useDataAggregation) {
+        if (useDataAggregation) {
+            return createContentFromBucket(dataReadResult.getBuckets());
+        } else {
+            return dumpDataSets(dataReadResult.getDataSets());
+        }
     }
 
     private DataReadResult readStepCountHistory(long startTime, long endTime, boolean useDataAggregation) {
@@ -156,7 +161,9 @@ public class StepsCountApiHelper {
 
         DataReadRequest request = requestBuilder
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+
                 .enableServerQueries()
+                .setLimit(LIMIT_OF_HISTORICAL_DATA)
                 .build();
 
         // Invoke the History API to fetch the data with the query and await the result of
@@ -220,8 +227,8 @@ public class StepsCountApiHelper {
         cal.add(Calendar.WEEK_OF_YEAR, -1);
         long startTime = cal.getTimeInMillis();
 
-        Log.i(TAG, "Range Start: " + mDateFormat.format(startTime));
-        Log.i(TAG, "Range End: " + mDateFormat.format(endTime));
+        Log.i(TAG, "Range Start: " + mDateTimeFormat.format(startTime));
+        Log.i(TAG, "Range End: " + mDateTimeFormat.format(endTime));
 
         return new long[] {startTime, endTime};
     }
@@ -230,10 +237,13 @@ public class StepsCountApiHelper {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(endTime);
         cal.add(Calendar.DAY_OF_MONTH, -1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
         long startTime = cal.getTimeInMillis();
 
-        Log.i(TAG, "Range Start: " + mDateFormat.format(startTime));
-        Log.i(TAG, "Range End: " + mDateFormat.format(endTime));
+        Log.i(TAG, "Range Start: " + mDateTimeFormat.format(startTime));
+        Log.i(TAG, "Range End: " + mDateTimeFormat.format(endTime));
 
         return new long[] {startTime, endTime};
     }

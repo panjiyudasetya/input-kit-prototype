@@ -17,20 +17,20 @@ import static nl.sense_os.input_kit.constant.Preference.STEP_COUNT_CONTENT_KEY;
  */
 
 public class PopulateDailyStepsCountDataTask extends AsyncTask<Void, Integer, List<Content>> {
-    private static final boolean USE_DATA_AGGREGATION = true;
+    private static final boolean USE_DATA_AGGREGATION = false;
     private static final DataCacheHelper CACHE = new DataCacheHelper();
     private final StepsCountApiHelper mApiHelper;
-    private final long endTime;
+    private final long mEndTime;
 
     public PopulateDailyStepsCountDataTask(@NonNull StepsCountApiHelper api, long endTime) {
         this.mApiHelper = api;
-        this.endTime = endTime;
+        this.mEndTime = endTime;
     }
 
     @Override
     protected List<Content> doInBackground(Void... voids) {
         List<Content> cacheContents = CACHE.load(STEP_COUNT_CONTENT_KEY);
-        StepsCountResponse response = mApiHelper.getAllStepCountHistory(USE_DATA_AGGREGATION);
+        StepsCountResponse response = mApiHelper.getDailyStepCount(mEndTime, USE_DATA_AGGREGATION);
         if (response.isQueryOk()) {
             List<Content> contents = response.getContents();
             CACHE.save(STEP_COUNT_CONTENT_KEY, contents);

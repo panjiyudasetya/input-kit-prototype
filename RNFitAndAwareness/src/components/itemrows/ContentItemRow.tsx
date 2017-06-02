@@ -13,7 +13,7 @@ const Row = (props) => (
       {`${props.content}`}
     </Text>
     <Text style={styles.textTimeStamp}>
-      {`${new Date(props.time_stamp).toUTCString()}`}
+      {`Your first event recorded at : \n${new Date(props.time_stamp).toLocaleString()}`}
     </Text>
   </View>
 );
