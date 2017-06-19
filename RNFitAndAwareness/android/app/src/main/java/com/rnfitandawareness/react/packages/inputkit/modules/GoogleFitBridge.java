@@ -3,6 +3,7 @@ package com.rnfitandawareness.react.packages.inputkit.modules;
 import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -11,9 +12,18 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.google.android.gms.common.ConnectionResult;
+import com.rnfitandawareness.helpers.JsonHelper;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import nl.sense_os.inputkit.InputKit;
 import nl.sense_os.inputkit.entity.StepContent;
+
+import static com.rnfitandawareness.react.packages.inputkit.constants.RequestCode.REQ_OAUTH_CODE;
+import static com.rnfitandawareness.react.packages.inputkit.constants.RequestCode.REQ_REQUIRED_PERMISSIONS;
+import static nl.sense_os.inputkit.entity.PermissionsHelper.getAllPermissions;
+import static nl.sense_os.inputkit.entity.PermissionsHelper.isAllPermissionsGranted;
 
 /**
  * Created by panjiyudasetya on 5/30/17.
@@ -22,7 +32,6 @@ import nl.sense_os.inputkit.entity.StepContent;
 public class GoogleFitBridge extends InputKitReactModule implements ActivityEventListener {
     private static final String GOOGLE_FIT_MODULE_NAME = "GoogleFitBridge";
     private static final String TAG = GOOGLE_FIT_MODULE_NAME;
-    private static final int REQ_OAUTH_CODE = 100;
 
     @SuppressWarnings("unused") // Used by React Native
     public GoogleFitBridge(ReactApplicationContext reactContext) {
@@ -79,7 +88,27 @@ public class GoogleFitBridge extends InputKitReactModule implements ActivityEven
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
     public void requestPermissions(ReadableArray permissions, Promise promise) {
-        // request all required permissions
+        // Validate action on Activity
+        Activity activity = getCurrentActivity();
+        if (activity == null) {
+            promise.reject(new Throwable("Unable to request some permissions while Application in foreground!"));
+            return;
+        }
+
+        // Requesting android permissions
+        try {
+            JSONArray rnArrayPermissions = JsonHelper.convertArrayToJson(permissions);
+            String[] requiredPermissions = getAllPermissions(rnArrayPermissions);
+            if (!isAllPermissionsGranted(activity, requiredPermissions)) {
+                ActivityCompat.requestPermissions(activity, requiredPermissions, REQ_REQUIRED_PERMISSIONS);
+            } else {
+                //showPermissionsMessageDialog(true);
+                promise.resolve("All permission has been granted.");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            promise.reject(new Throwable(e.getMessage()));
+        }
     }
 
     /**
