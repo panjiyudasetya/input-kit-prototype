@@ -51,6 +51,7 @@ class GeofencingPage extends Component<any, any> implements AwarenessDelegate {
       Awareness.reqSharedInstance().then((awareness) => {
           return awareness.getGeoFencingHistory();
       }).then((data: string) => {
+          console.log('JSReceiving geofencing data : ' + data);
           const GEOFENCE_HISTORY = JSON.parse(data);
           this.notifyDataSourceChange(GEOFENCE_HISTORY);
       }).catch((error) => {

@@ -2,8 +2,6 @@ package com.rnfitandawareness;
 
 import android.os.Bundle;
 
-import nl.sense_os.input_kit.helpers.AlarmHelper;
-
 public class MainActivity extends BaseActivity {
     /**
      * Returns the name of the main component registered from JavaScript.
@@ -17,12 +15,5 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setAlarm();
-    }
-
-    private void setAlarm() {
-        AlarmHelper alarmHelper = new AlarmHelper(this);
-        alarmHelper.startRepeatingAlarm();
-        alarmHelper.setNextSelfSchedulingAlarm();
     }
 }

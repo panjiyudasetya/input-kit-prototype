@@ -1,31 +1,28 @@
 package com.rnfitandawareness.react.packages.inputkit.modules;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
-import com.rnfitandawareness.react.packages.inputkit.constants.Measurement;
+import com.google.android.gms.common.ConnectionResult;
 
-import java.util.List;
-
-import nl.sense_os.input_kit.entities.Content;
-import nl.sense_os.input_kit.listeners.InputKitConnectionListener;
-import nl.sense_os.input_kit.listeners.ResultListener;
-
-import static nl.sense_os.input_kit.constant.InputKitEventName.COLLECT_STEPS_COUNT_EVENT;
-import static nl.sense_os.input_kit.constant.InputKitEventName.PLAY_SERVICE_CONNECTION_EVENT;
-import static nl.sense_os.input_kit.constant.InputKitEventName.SUBSCRIBE_STEPS_COUNT_EVENT;
-import static nl.sense_os.input_kit.constant.InputKitEventName.UNSUBSCRIBE_STEPS_COUNT_EVENT;
+import nl.sense_os.inputkit.InputKit;
+import nl.sense_os.inputkit.entity.StepContent;
 
 /**
  * Created by panjiyudasetya on 5/30/17.
  */
 
-public class GoogleFitBridge extends InputKitReactModule {
+public class GoogleFitBridge extends InputKitReactModule implements ActivityEventListener {
     private static final String GOOGLE_FIT_MODULE_NAME = "GoogleFitBridge";
     private static final String TAG = GOOGLE_FIT_MODULE_NAME;
+    private static final int REQ_OAUTH_CODE = 100;
 
     @SuppressWarnings("unused") // Used by React Native
     public GoogleFitBridge(ReactApplicationContext reactContext) {
@@ -37,123 +34,97 @@ public class GoogleFitBridge extends InputKitReactModule {
         return GOOGLE_FIT_MODULE_NAME;
     }
 
-    @ReactMethod
-    @SuppressWarnings("unused")//Used by React Native application
-    public void isGoogleApiClientConnected(final Promise promise) {
-        connectToInputKit(
-                PLAY_SERVICE_CONNECTION_EVENT,
-                new InputKitConnectionListener() {
-                    @Override
-                    public void onInputKitIsAccessible() {
-                        promise.resolve("Successfully connect to Input Kit");
-                    }
+    @Override
+    public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult: " + requestCode);
+        if (requestCode == REQ_OAUTH_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                Log.d(TAG, "onActivityResult: Successfully connect to OAUTH");
+            } else {
+                // TODO : Do we need to call mInputKit.authorize(InputKit.Callback) ?
+            }
+        }
+    }
 
-                    @Override
-                    public void onInputKitIsNotAccessible(String reason) {
-                        promise.reject(new Throwable(reason));
-                    }
-                }
-        );
+    @Override
+    public void onNewIntent(Intent intent) {
+
     }
 
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
-    public void requestPermissions(ReadableArray permissions, Promise promise) {
-        if (checkPermissions(true)) promise.resolve("All permission has been granted.");
-        else promise.reject(new Throwable("All permission should be granted."));
-    }
-
-    @ReactMethod
-    @SuppressWarnings("unused")//Used by React Native application
-    /**
-     * Set promise resolve into stringify of json object when successful
-     * {
-     *     "value" : 2,
-     *     "startDate" : 1403654400000L,
-     *     "endDate" : 1403654400000L
-     * }
-     */
-    public void getStepCount(final float date, final Promise promise) {
-        if (!validateAction(promise)) return;
-
-        connectToInputKit(COLLECT_STEPS_COUNT_EVENT, new InputKitConnectionListener() {
+    public void isHealthAvailable(final Promise promise) {
+        mInputKit.checkAvailability(new InputKit.Callback() {
             @Override
-            public void onInputKitIsAccessible() {
-                mInputKit.getDailyStepsCountHistory((long) date, new ResultListener<List<Content>>() {
-                    @Override
-                    public void onResult(boolean isSuccess, @NonNull List<Content> data) {
-                        System.out.println("Receiving steps count : " + isSuccess + ", " + data);
-                        if (isSuccess) promise.resolve(GSON.toJson(data));
-                        else promise.reject(new Throwable("Unable to get daily steps counts"));
-                    }
-                });
+            public void onAvailable() {
+                promise.resolve("Google Fit available!");
             }
 
             @Override
-            public void onInputKitIsNotAccessible(String reason) {
+            public void onNotAvailable(@NonNull String reason) {
                 promise.reject(new Throwable(reason));
+            }
+
+            @Override
+            public void onConnectionRefused(@NonNull ConnectionResult connectionResult) {
+                try {
+                    connectionResult.startResolutionForResult(getCurrentActivity(), REQ_OAUTH_CODE);
+                } catch (Exception ex) {
+                    promise.reject(new Throwable(ex.getMessage()));
+                }
             }
         });
     }
 
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
-    public void startMonitoring(final String type, final Promise promise) {
-        if (!validateAction(promise)) return;
-
-        if (type.equals(Measurement.STEPS_COUNT)) {
-            connectToInputKit(SUBSCRIBE_STEPS_COUNT_EVENT, new InputKitConnectionListener() {
-                @Override
-                public void onInputKitIsAccessible() {
-                    mInputKit.subscribeDailyStepsCount(new ResultListener<String>() {
-                        @Override
-                        public void onResult(boolean isSuccess, @NonNull String data) {
-                            System.out.println("Start monitoring steps count : " + isSuccess + ", " + data);
-                            if (isSuccess) promise.resolve(data);
-                            else promise.reject(new Throwable(data));
-                        }
-                    });
-                }
-
-                @Override
-                public void onInputKitIsNotAccessible(String reason) {
-                    promise.reject(new Throwable(reason));
-                }
-            });
-        } else promise.reject(new Throwable("Unknown monitoring type : " + type));
+    public void requestPermissions(ReadableArray permissions, Promise promise) {
+        // request all required permissions
     }
 
+    /**
+     * Get total steps count of specific range
+     * @param startTime epoch for the start date
+     * @param endTime   epoch for the end date
+     * @param promise containing number of total steps count
+     */
     @ReactMethod
     @SuppressWarnings("unused")//Used by React Native application
-    public void stopMonitoring(final String type, final Promise promise) {
-        if (!validateAction(promise)) return;
-
-        if (type.equals(Measurement.STEPS_COUNT)) {
-            connectToInputKit(UNSUBSCRIBE_STEPS_COUNT_EVENT, new InputKitConnectionListener() {
-                @Override
-                public void onInputKitIsAccessible() {
-                    mInputKit.unsubscribeDailyStepsCount(new ResultListener<String>() {
-                        @Override
-                        public void onResult(boolean isSuccess, @NonNull String data) {
-                            if (isSuccess) promise.resolve(data);
-                            else promise.reject(new Throwable(data));
-                        }
-                    });
-                }
-
-                @Override
-                public void onInputKitIsNotAccessible(String reason) {
-                    promise.reject(new Throwable(reason));
-                }
-            });
-        } else promise.reject(new Throwable("Unknown monitoring type : " + type));
+    public void getStepCount(long startTime, long endTime, final Promise promise) {
+        mInputKit.getStepCount(startTime, endTime, new InputKit.ResultCallback<Integer>() {
+            @Override
+            public void onNewData(Integer data) {
+                Log.d(TAG, "getStepCount#onNewData: " + data);
+                promise.resolve(data);
+            }
+        });
     }
 
-    private boolean validateAction(Promise promise) {
-        if (!checkPermissions(false)) {
-            promise.reject(new Throwable("Unable to perform this action due to some permission issue"));
-            return false;
-        }
-        return true;
+    /**
+     *  Returns Promise contains distribution of step count value through out a specific range.
+     *
+     *  @param startTime    epoch for the start date of the range where the distribution should be calculated from.
+     *  @param endTime      epoch for the end date of the range where the distribution should be calculated from.
+     *  @param interval     Interval
+     *  @return Promise containing:
+     *     value: total number of steps
+     *     startDate: epoch for the start date
+     *     endDate: epoch for the end date
+     **/
+    @ReactMethod
+    @SuppressWarnings("unused")//Used by React Native application
+    public void getStepCountDistribution(long startTime, long endTime, String interval, final Promise promise) {
+        mInputKit.getStepCountDistribution(
+                startTime,
+                endTime,
+                interval,
+                new InputKit.ResultCallback<StepContent>() {
+                    @Override
+                    public void onNewData(StepContent data) {
+                        Log.d(TAG, "getStepCountDistribution#onNewData: " + data.toJson());
+                        promise.resolve(data.toJson());
+                    }
+                }
+        );
     }
 }

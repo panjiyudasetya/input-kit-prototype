@@ -5,7 +5,6 @@ import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-import com.rnfitandawareness.react.packages.inputkit.modules.AwarenessBridge;
 import com.rnfitandawareness.react.packages.inputkit.modules.GoogleFitBridge;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ public class InputKitReactPackage implements ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
-        modules.add(new AwarenessBridge(reactContext));
         modules.add(new GoogleFitBridge(reactContext));
         return modules;
     }
