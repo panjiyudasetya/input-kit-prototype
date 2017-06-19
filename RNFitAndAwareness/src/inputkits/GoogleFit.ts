@@ -20,48 +20,21 @@ class GoogleFit {
         this.delegate = delegate;
     }
 
+    isHealthAvailable() {
+        return this.googleFitBridge.isHealthAvailable();
+    }
+
     requestPermissions(types: [string]) {
         console.log(types);
         return this.googleFitBridge.requestPermissions(types);
     }
 
-    getStepCount(date: Date) {
-        return this.googleFitBridge.getStepCount(date.getTime());
+    getStepCount(startDate: Date, endDate: Date) {
+        return this.googleFitBridge.getStepCount(startDate.getTime(), endDate.getTime());
     }
 
-    startMonitoring(type: GoogleFitType) {
-        let monitoringType: string = '';
-        let EMITTER_EVENT_NAME: string = '';
-        if (type === 'stepsCount') {
-            monitoringType = 'Steps Count';
-            EMITTER_EVENT_NAME = EmitterEventListener.STEPS_COUNT_EVENT_LISTENER;
-        }
-
-        if (monitoringType !== '') {
-            console.log('Start Monitoring : ' + monitoringType);
-            googleFitBridgeEmitter.addListener(EMITTER_EVENT_NAME, (eventName, success) => {
-                console.log('Receive an event from ' + eventName + ', ' + success);
-                this.delegate.onGoogleFitUpdates(eventName, success);
-            });
-            return this.googleFitBridge.startMonitoring(type);
-        }
-    }
-
-    stopMonitoring(type: GoogleFitType) {
-        let monitoringType: string = '';
-        let EMITTER_EVENT_NAME: string = '';
-        if (type === 'stepsCount') {
-            monitoringType = 'Steps Count';
-            EMITTER_EVENT_NAME = EmitterEventListener.STEPS_COUNT_EVENT_LISTENER;
-        }
-
-        if (monitoringType !== '') {
-            console.log('Start Monitoring : ' + monitoringType);
-            googleFitBridgeEmitter.removeListener(EMITTER_EVENT_NAME, () => {
-                console.log(EMITTER_EVENT_NAME + ' removed.');
-            });
-            return this.googleFitBridge.stopMonitoring(type);
-        }
+    getStepCountDistribution(startDate: Date, endDate: Date, interval: string) {
+        return this.googleFitBridge.getStepCountDistribution(startDate.getTime(), endDate.getTime(), interval);
     }
 }
 

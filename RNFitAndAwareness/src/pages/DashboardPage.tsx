@@ -5,7 +5,6 @@ import {
   View
 } from 'react-native';
 import StepsCountPage from './StepsCountPage';
-import GeofencingPage from './GeofencingPage';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 
 class DashboardPage extends Component<any, any> {
@@ -20,7 +19,6 @@ class DashboardPage extends Component<any, any> {
          tabBarActiveTextColor={'#03A9F4'}
          tabBarUnderlineStyle={{ backgroundColor: '#03A9F4' }}>
             <StepsCountPage tabLabel="Steps Count" />
-            <GeofencingPage tabLabel="Geofencing" />
       </ScrollableTabView>
     );
   }

@@ -3,11 +3,9 @@ import {
   StyleSheet,
   Text,
   View,
+  TextInput,
   ListView
 } from 'react-native';
-import Measurements from '../constants/Measurements';
-import EmitterEventListener from '../constants/EmitterEventListener';
-import Row from '../components/itemrows/ContentItemRow';
 import InputKit from '../inputkits';
 import { DeviceEventEmitter } from 'react-native';
 import {
@@ -46,18 +44,29 @@ class StepsCountPage extends Component<any, any> implements GoogleFitDelegate {
 
   render() {
     return (
-      <ListView
-        style={styles.containerStyle}
-        dataSource={this.state.dataSource}
-        renderRow={(data) => <Row {...data}
-        enableEmptySections={true} />}
-      />
+        <ListView
+          style={styles.listViewStyle}
+          dataSource={this.state.dataSource}
+          renderRow={(rowData) => <Text style={styles.rowItem}>{rowData}</Text>}
+          renderSeparator={
+            (sectionID: number, rowID: number, adjacentRowHighlighted: boolean) => <View
+                key={`${sectionID}-${rowID}`}
+                style={{
+                  height: adjacentRowHighlighted ? 4 : 1,
+                  backgroundColor: adjacentRowHighlighted ? '#3B5998' : '#CCCCCC',
+                }}
+              />
+          }
+          enableEmptySections={true}
+        />
     );
   }
 
   fetchData() {
       GoogleFit.reqSharedInstance().then((googleFit) => {
-          return googleFit.getStepCount(new Date());
+          const startDate = new Date('June 19, 2017 00:00:00');
+          const endDate = new Date('June 20, 2017 23:59:00');
+          return googleFit.getStepCount(startDate, endDate);
       }).then((data: string) => {
           console.log('JSReceiving steps count data : ' + data);
           const STEPS_COUNT = JSON.parse(data);
@@ -71,10 +80,12 @@ class StepsCountPage extends Component<any, any> implements GoogleFitDelegate {
 export default StepsCountPage;
 
 const styles = StyleSheet.create({
-  containerStyle: {
+  listViewStyle: {
+    marginBottom: 10,
     flex: 1
   },
-  flexItem: {
-    margin: 5
-  }
+  rowItem: {
+    fontSize: 14,
+    padding: 10,
+  },
 });

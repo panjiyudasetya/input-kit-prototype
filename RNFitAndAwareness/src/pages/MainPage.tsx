@@ -9,10 +9,7 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import Measurements from '../constants/Measurements';
-import {
-    GoogleFit,
-    Awareness
- } from '../inputkits';
+import { GoogleFit } from '../inputkits';
 
 class MainPage extends Component<any, any> {
   componentWillMount() {
@@ -39,18 +36,6 @@ class MainPage extends Component<any, any> {
         </View>
         <View style={styles.flexItem}>
             <Button
-                onPress={this.startMeasurements}
-                title="Start Measurements"
-                color="#4CAF50"/>
-        </View>
-        <View style={styles.flexItem}>
-            <Button
-                onPress={this.stopMeasurements}
-                title="Stop Measurements"
-                color="#F44336"/>
-        </View>
-        <View style={styles.flexItem}>
-            <Button
                 onPress={Actions.goToDashboardPage}
                 title="Open Dashboard"
                 color="#03A9F4"/>
@@ -61,47 +46,11 @@ class MainPage extends Component<any, any> {
 
   requestPermissions() {
       // InputKitModule.requestPermissions();
-      const measurements: [string] = [Measurements.STEPS_COUNT, Measurements.GEOFENCING];
+      const measurements: [string] = [Measurements.STEPS_COUNT];
       GoogleFit.reqSharedInstance().then((googleFit) => {
           return googleFit.requestPermissions(measurements);
       }).then(() => {
           console.log('Request Permission done');
-      }).catch((error) => {
-          console.log(error);
-      });
-  }
-
-  startMeasurements() {
-      GoogleFit.reqSharedInstance().then((googleFit) => {
-          return googleFit.startMonitoring('stepsCount');
-      }).then(() => {
-          console.log('Steps Count measurement started');
-      }).catch((error) => {
-          console.log(error);
-      });
-
-      Awareness.reqSharedInstance().then((awareness) => {
-          return awareness.startGeoFencing();
-      }).then(() => {
-          console.log('Geofencing service started');
-      }).catch((error) => {
-          console.log(error);
-      });
-  }
-
-  stopMeasurements() {
-      GoogleFit.reqSharedInstance().then((googleFit) => {
-          return googleFit.startMonitoring('stepsCount');
-      }).then(() => {
-          console.log('Steps Count measurement stopped');
-      }).catch((error) => {
-          console.log(error);
-      });
-
-      Awareness.reqSharedInstance().then((awareness) => {
-          return awareness.stopGeoFencing();
-      }).then(() => {
-          console.log('Geofencing service stopped');
       }).catch((error) => {
           console.log(error);
       });
